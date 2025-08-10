@@ -88,9 +88,31 @@ export const passwordResetSchema = z
     path: ["confirmPassword"],
   });
 
+export const profileUpdateSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .min(2, "Name must be at least 2 characters long")
+    .max(100, "Name must be less than 100 characters"),
+  businessName: z.string().optional(),
+  contactNumber: z
+    .string()
+    .min(1, "Contact number is required")
+    .regex(
+      /^(\+27|0)[0-9]{9}$/,
+      "Please enter a valid South African phone number"
+    ),
+  location: z
+    .string()
+    .min(1, "Location is required")
+    .min(2, "Location must be at least 2 characters long"),
+  avatarUrl: z.string().url().optional().or(z.literal("")),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type PasswordResetRequestInput = z.infer<
   typeof passwordResetRequestSchema
 >;
 export type PasswordResetInput = z.infer<typeof passwordResetSchema>;
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
