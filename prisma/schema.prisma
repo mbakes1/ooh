@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String               @map("password_hash")
+  name                String
+  role                UserRole
+  businessName        String?              @map("business_name")
+  contactNumber       String?              @map("contact_number")
+  location            String?
+  verified            Boolean              @default(false)
+  avatarUrl           String?              @map("avatar_url")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  billboards          Billboard[]
+  receivedMessages    Message[]            @relation("ReceivedMessages")
+  sentMessages        Message[]            @relation("SentMessages")
+  passwordResetTokens PasswordResetToken[]
+  conversations       Conversation[]       @relation("ConversationParticipants")
+
+  @@map("users")
+}
+
+model Billboard {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  ownerId         String           @map("owner_id")
+  address         String
+  city            String
+  province        String
+  postalCode      String?          @map("postal_code")
+  latitude        Decimal?         @db.Decimal(10, 8)
+  longitude       Decimal?         @db.Decimal(11, 8)
+  width           Int
+  height          Int
+  resolution      String?
+  brightness      Int?
+  viewingDistance Int?             @map("viewing_distance")
+  trafficLevel    TrafficLevel?    @map("traffic_level")
+  basePrice       Decimal          @map("base_price") @db.Decimal(10, 2)
+  currency        String           @default("ZAR")
+  status          BillboardStatus  @default(PENDING)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  images          BillboardImage[]
+  owner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  conversations   Conversation[]
+
+  @@map("billboards")
+}
+
+model BillboardImage {
+  id          String    @id @default(cuid())
+  billboardId String    @map("billboard_id")
+  imageUrl    String    @map("image_url")
+  altText     String?   @map("alt_text")
+  isPrimary   Boolean   @default(false) @map("is_primary")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  billboard   Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
+
+  @@map("billboard_images")
+}
+
+model Conversation {
+  id           String     @id @default(cuid())
+  billboardId  String?    @map("billboard_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  billboard    Billboard? @relation(fields: [billboardId], references: [id])
+  messages     Message[]
+  participants User[]     @relation("ConversationParticipants")
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String       @map("conversation_id")
+  senderId       String       @map("sender_id")
+  recipientId    String       @map("recipient_id")
+  content        String
+  readAt         DateTime?    @map("read_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  recipient      User         @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+enum UserRole {
+  OWNER
+  ADVERTISER
+}
+
+enum BillboardStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum TrafficLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
