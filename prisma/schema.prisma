@@ -17,6 +17,8 @@ model User {
   contactNumber       String?              @map("contact_number")
   location            String?
   verified            Boolean              @default(false)
+  suspended           Boolean              @default(false)
+  suspendedAt         DateTime?            @map("suspended_at")
   avatarUrl           String?              @map("avatar_url")
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
@@ -49,6 +51,13 @@ model Billboard {
   basePrice       Decimal          @map("base_price") @db.Decimal(10, 2)
   currency        String           @default("ZAR")
   status          BillboardStatus  @default(PENDING)
+  approvedAt      DateTime?        @map("approved_at")
+  approvedBy      String?          @map("approved_by")
+  rejectedAt      DateTime?        @map("rejected_at")
+  rejectedBy      String?          @map("rejected_by")
+  rejectionReason String?          @map("rejection_reason")
+  suspendedAt     DateTime?        @map("suspended_at")
+  suspendedBy     String?          @map("suspended_by")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
   images          BillboardImage[]
@@ -112,12 +121,15 @@ model PasswordResetToken {
 enum UserRole {
   OWNER
   ADVERTISER
+  ADMIN
 }
 
 enum BillboardStatus {
   ACTIVE
   INACTIVE
   PENDING
+  REJECTED
+  SUSPENDED
 }
 
 enum TrafficLevel {

@@ -1,50 +1,64 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { NextRequest } from "next/server";
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "memory://",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-});
+// Simple in-memory rate limiting for development
+const memoryStore = new Map<string, { count: number; resetTime: number }>();
 
-// Different rate limits for different endpoints
-export const rateLimits = {
-  // Authentication endpoints - stricter limits
-  auth: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(5, "15 m"), // 5 requests per 15 minutes
-    analytics: true,
-  }),
+interface RateLimitResult {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: Date;
+}
 
-  // API endpoints - moderate limits
-  api: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(100, "1 h"), // 100 requests per hour
-    analytics: true,
-  }),
-
-  // Search endpoints - higher limits
-  search: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(200, "1 h"), // 200 requests per hour
-    analytics: true,
-  }),
-
-  // File upload - very strict limits
-  upload: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(10, "1 h"), // 10 uploads per hour
-    analytics: true,
-  }),
-
-  // Message sending - moderate limits
-  messaging: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(50, "1 h"), // 50 messages per hour
-    analytics: true,
-  }),
+// Rate limit configurations
+const rateLimitConfigs = {
+  auth: { limit: 5, windowMs: 15 * 60 * 1000 }, // 5 requests per 15 minutes
+  api: { limit: 100, windowMs: 60 * 60 * 1000 }, // 100 requests per hour
+  search: { limit: 200, windowMs: 60 * 60 * 1000 }, // 200 requests per hour
+  upload: { limit: 10, windowMs: 60 * 60 * 1000 }, // 10 uploads per hour
+  messaging: { limit: 50, windowMs: 60 * 60 * 1000 }, // 50 messages per hour
 };
+
+/**
+ * Simple in-memory rate limiting (for development)
+ */
+function simpleRateLimit(
+  identifier: string,
+  config: { limit: number; windowMs: number }
+): RateLimitResult {
+  const now = Date.now();
+  const key = identifier;
+  const existing = memoryStore.get(key);
+
+  // Clean up expired entries
+  if (existing && now > existing.resetTime) {
+    memoryStore.delete(key);
+  }
+
+  const current = memoryStore.get(key) || {
+    count: 0,
+    resetTime: now + config.windowMs,
+  };
+
+  if (current.count >= config.limit) {
+    return {
+      success: false,
+      limit: config.limit,
+      remaining: 0,
+      reset: new Date(current.resetTime),
+    };
+  }
+
+  current.count++;
+  memoryStore.set(key, current);
+
+  return {
+    success: true,
+    limit: config.limit,
+    remaining: config.limit - current.count,
+    reset: new Date(current.resetTime),
+  };
+}
 
 /**
  * Get client identifier for rate limiting
@@ -58,7 +72,8 @@ export function getClientIdentifier(request: NextRequest): string {
 
   // Fall back to IP address
   const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0] : request.ip || "unknown";
+  const realIp = request.headers.get("x-real-ip");
+  const ip = forwarded ? forwarded.split(",")[0] : realIp || "unknown";
   return `ip:${ip}`;
 }
 
@@ -67,20 +82,14 @@ export function getClientIdentifier(request: NextRequest): string {
  */
 export async function applyRateLimit(
   request: NextRequest,
-  limitType: keyof typeof rateLimits
-): Promise<{
-  success: boolean;
-  limit: number;
-  remaining: number;
-  reset: Date;
-}> {
+  limitType: keyof typeof rateLimitConfigs
+): Promise<RateLimitResult> {
   const identifier = getClientIdentifier(request);
-  const rateLimit = rateLimits[limitType];
+  const config = rateLimitConfigs[limitType];
 
-  const { success, limit, remaining, reset } =
-    await rateLimit.limit(identifier);
-
-  return { success, limit, remaining, reset };
+  // For now, use simple in-memory rate limiting
+  // In production, you would use Redis-based rate limiting
+  return simpleRateLimit(identifier, config);
 }
 
 /**
@@ -113,3 +122,6 @@ export function createRateLimitResponse(
     }
   );
 }
+
+// Export for backward compatibility
+export const rateLimits = rateLimitConfigs;

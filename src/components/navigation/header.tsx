@@ -179,6 +179,14 @@ export function Header() {
                           <span>Profile Settings</span>
                         </Link>
                       </DropdownMenuItem>
+                      {session.user.role === "ADMIN" && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="cursor-pointer">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Admin Dashboard</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={handleSignOut}

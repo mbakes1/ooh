@@ -22,7 +22,22 @@ export type PasswordResetToken = PrismaPasswordResetToken;
 export type { UserRole, BillboardStatus, TrafficLevel };
 
 // Extended types with relations
-export type UserWithProfile = User;
+export type UserWithProfile = User & {
+  profile?: {
+    businessName?: string;
+    contactNumber?: string;
+    location?: string;
+    verified: boolean;
+    avatarUrl?: string;
+  };
+  _count?: {
+    billboards: number;
+    sentMessages: number;
+    receivedMessages: number;
+  };
+  suspended?: boolean;
+  suspendedAt?: Date;
+};
 
 export type BillboardWithDetails = Billboard & {
   owner: User;
