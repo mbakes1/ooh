@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { UserRole } from "@prisma/client";
+import { validateSouthAfricanPhoneNumber } from "@/lib/localization/south-africa";
 
 export const loginSchema = z.object({
   email: z
@@ -38,9 +39,9 @@ export const registerSchema = z
     contactNumber: z
       .string()
       .min(1, "Contact number is required")
-      .regex(
-        /^(\+27|0)[0-9]{9}$/,
-        "Please enter a valid South African phone number"
+      .refine(
+        (phone) => validateSouthAfricanPhoneNumber(phone),
+        "Please enter a valid South African phone number (e.g., +27 82 123 4567 or 082 123 4567)"
       ),
     location: z
       .string()
@@ -98,9 +99,9 @@ export const profileUpdateSchema = z.object({
   contactNumber: z
     .string()
     .min(1, "Contact number is required")
-    .regex(
-      /^(\+27|0)[0-9]{9}$/,
-      "Please enter a valid South African phone number"
+    .refine(
+      (phone) => validateSouthAfricanPhoneNumber(phone),
+      "Please enter a valid South African phone number (e.g., +27 82 123 4567 or 082 123 4567)"
     ),
   location: z
     .string()

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getCurrentSASTTime } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
       status: "OK",
       database: "Connected",
       userCount,
-      timestamp: new Date().toISOString(),
+      timestamp: getCurrentSASTTime().toISOString(),
     });
   } catch (error) {
     console.error("Test API error:", error);

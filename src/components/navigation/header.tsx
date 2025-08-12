@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, X, User, LogOut, Settings, MapPin } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Settings,
+  MapPin,
+  MessageCircle,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +27,7 @@ import {
 export function Header() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
@@ -35,6 +44,34 @@ export function Header() {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Fetch unread message count
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchUnreadCount();
+      // Set up polling for real-time updates
+      const interval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [session?.user?.id]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await fetch("/api/conversations");
+      if (response.ok) {
+        const data = await response.json();
+        const totalUnread =
+          data.conversations?.reduce(
+            (sum: number, conv: { _count: { messages: number } }) =>
+              sum + conv._count.messages,
+            0
+          ) || 0;
+        setUnreadCount(totalUnread);
+      }
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error);
+    }
   };
 
   return (
@@ -72,9 +109,17 @@ export function Header() {
             )}
             <Link
               href="/messages"
-              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors relative"
             >
-              Messages
+              <div className="flex items-center space-x-1">
+                <MessageCircle className="h-4 w-4" />
+                <span>Messages</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </div>
             </Link>
           </nav>
 
@@ -242,10 +287,18 @@ export function Header() {
                   )}
                   <Link
                     href="/messages"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md relative"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Messages
+                    <div className="flex items-center space-x-2">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Messages</span>
+                      {unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </Link>
                   <Link
                     href="/dashboard"
