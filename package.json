@@ -17,6 +17,10 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
+    "admin:promote": "tsx scripts/manage-admin.ts promote",
+    "admin:demote": "tsx scripts/manage-admin.ts demote",
+    "admin:list": "tsx scripts/manage-admin.ts list",
+    "admin:setup": "tsx scripts/promote-to-admin.ts",
     "security:audit": "npm audit",
     "security:audit:fix": "npm audit fix",
     "security:check": "npm run type-check && npm run lint && npm run security:audit"
