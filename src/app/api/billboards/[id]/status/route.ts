@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { UserRole, BillboardStatus } from "@prisma/client";
 import { z } from "zod";
+import { NotificationService } from "@/lib/notifications/service";
+import { emitBillboardStatusUpdate } from "@/lib/websocket/server";
 
 const statusUpdateSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE", "PENDING"]),
@@ -40,7 +42,7 @@ export async function PATCH(
     // Check if billboard exists and belongs to the user
     const existingBillboard = await prisma.billboard.findUnique({
       where: { id },
-      select: { ownerId: true },
+      select: { ownerId: true, status: true, title: true },
     });
 
     if (!existingBillboard) {
@@ -74,6 +76,8 @@ export async function PATCH(
 
     const { status } = validationResult.data;
 
+    const oldStatus = existingBillboard.status;
+
     // Update the billboard status
     const billboard = await prisma.billboard.update({
       where: { id },
@@ -90,6 +94,31 @@ export async function PATCH(
         },
       },
     });
+
+    // Send real-time notification
+    try {
+      emitBillboardStatusUpdate({
+        billboardId: id,
+        ownerId: session.user.id,
+        status: status,
+        updatedAt: new Date(),
+      });
+    } catch (error) {
+      console.error("Failed to send real-time status update:", error);
+    }
+
+    // Create in-app notification
+    try {
+      await NotificationService.createStatusChangeNotification({
+        ownerId: session.user.id,
+        billboardTitle: existingBillboard.title,
+        billboardId: id,
+        oldStatus: oldStatus,
+        newStatus: status,
+      });
+    } catch (error) {
+      console.error("Failed to create status change notification:", error);
+    }
 
     return NextResponse.json({
       message: "Billboard status updated successfully",

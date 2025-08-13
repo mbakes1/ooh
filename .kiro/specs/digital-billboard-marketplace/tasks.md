@@ -106,7 +106,7 @@
   - Create privacy policy and terms of service pages
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 14. Create comprehensive data tables and admin interfaces
+- [x] 14. Create comprehensive data tables and admin interfaces
   - Build reusable DataTable component using TanStack Table
   - Implement user management interface for administrators
   - Create billboard moderation dashboard with approval workflow
@@ -122,7 +122,7 @@
   - Add image moderation and content filtering
   - _Requirements: 2.2, 5.2_
 
-- [ ] 16. Add real-time features and notifications
+- [x] 16. Add real-time features and notifications
   - Implement WebSocket connection for real-time messaging
   - Create notification system for new messages and inquiries
   - Build real-time updates for listing status changes

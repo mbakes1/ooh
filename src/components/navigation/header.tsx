@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageCircle,
 } from "lucide-react";
+import { NotificationCenter } from "@/components/notifications/notification-center";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -129,6 +130,9 @@ export function Header() {
               <div className="h-8 w-8 animate-pulse bg-gray-200 rounded-full"></div>
             ) : session ? (
               <>
+                {/* Notification Center */}
+                <NotificationCenter />
+
                 {/* Desktop User Menu */}
                 <div className="hidden md:block">
                   <DropdownMenu>

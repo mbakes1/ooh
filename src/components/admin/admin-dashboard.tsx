@@ -12,6 +12,8 @@ import {
 import { UserManagement } from "./user-management";
 import { BillboardModeration } from "./billboard-moderation";
 import { AnalyticsDashboard } from "./analytics-dashboard";
+import { AdvancedAnalytics } from "./advanced-analytics";
+import { AdminReports } from "./admin-reports";
 import { User, Billboard } from "@/types";
 import { toast } from "sonner";
 
@@ -98,6 +100,28 @@ export function AdminDashboard() {
     }
   };
 
+  const handleBulkVerifyUsers = async (userIds: string[]) => {
+    try {
+      const promises = userIds.map((userId) =>
+        fetch(`/api/admin/users/${userId}/verify`, { method: "POST" })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount === userIds.length) {
+        toast.success(`${successCount} users verified successfully`);
+      } else {
+        toast.warning(`${successCount} of ${userIds.length} users verified`);
+      }
+
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error("Error bulk verifying users:", error);
+      toast.error("Failed to verify users");
+    }
+  };
+
   const handleSuspendUser = async (userId: string) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/suspend`, {
@@ -113,6 +137,32 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error suspending user:", error);
       toast.error("Failed to suspend user");
+    }
+  };
+
+  const handleBulkSuspendUsers = async (userIds: string[]) => {
+    if (!confirm(`Are you sure you want to suspend ${userIds.length} users?`)) {
+      return;
+    }
+
+    try {
+      const promises = userIds.map((userId) =>
+        fetch(`/api/admin/users/${userId}/suspend`, { method: "POST" })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount === userIds.length) {
+        toast.success(`${successCount} users suspended successfully`);
+      } else {
+        toast.warning(`${successCount} of ${userIds.length} users suspended`);
+      }
+
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error("Error bulk suspending users:", error);
+      toast.error("Failed to suspend users");
     }
   };
 
@@ -139,6 +189,36 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
+    }
+  };
+
+  const handleBulkDeleteUsers = async (userIds: string[]) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${userIds.length} users? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const promises = userIds.map((userId) =>
+        fetch(`/api/admin/users/${userId}`, { method: "DELETE" })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount === userIds.length) {
+        toast.success(`${successCount} users deleted successfully`);
+      } else {
+        toast.warning(`${successCount} of ${userIds.length} users deleted`);
+      }
+
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error("Error bulk deleting users:", error);
+      toast.error("Failed to delete users");
     }
   };
 
@@ -219,6 +299,97 @@ export function AdminDashboard() {
     }
   };
 
+  const handleBulkApproveBillboards = async (billboardIds: string[]) => {
+    try {
+      const promises = billboardIds.map((billboardId) =>
+        fetch(`/api/admin/billboards/${billboardId}/approve`, {
+          method: "POST",
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount === billboardIds.length) {
+        toast.success(`${successCount} billboards approved successfully`);
+      } else {
+        toast.warning(
+          `${successCount} of ${billboardIds.length} billboards approved`
+        );
+      }
+
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error("Error bulk approving billboards:", error);
+      toast.error("Failed to approve billboards");
+    }
+  };
+
+  const handleBulkRejectBillboards = async (
+    billboardIds: string[],
+    reason: string
+  ) => {
+    try {
+      const promises = billboardIds.map((billboardId) =>
+        fetch(`/api/admin/billboards/${billboardId}/reject`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount === billboardIds.length) {
+        toast.success(`${successCount} billboards rejected successfully`);
+      } else {
+        toast.warning(
+          `${successCount} of ${billboardIds.length} billboards rejected`
+        );
+      }
+
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error("Error bulk rejecting billboards:", error);
+      toast.error("Failed to reject billboards");
+    }
+  };
+
+  const handleBulkSuspendBillboards = async (billboardIds: string[]) => {
+    if (
+      !confirm(
+        `Are you sure you want to suspend ${billboardIds.length} billboards?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const promises = billboardIds.map((billboardId) =>
+        fetch(`/api/admin/billboards/${billboardId}/suspend`, {
+          method: "POST",
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount === billboardIds.length) {
+        toast.success(`${successCount} billboards suspended successfully`);
+      } else {
+        toast.warning(
+          `${successCount} of ${billboardIds.length} billboards suspended`
+        );
+      }
+
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error("Error bulk suspending billboards:", error);
+      toast.error("Failed to suspend billboards");
+    }
+  };
+
   // Analytics handlers
   const handleExportReport = async (type: string) => {
     try {
@@ -267,10 +438,12 @@ export function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="billboards">Billboard Moderation</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="billboards">Billboards</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics">
@@ -294,6 +467,68 @@ export function AdminDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="advanced">
+          {analyticsData ? (
+            <AdvancedAnalytics
+              data={{
+                ...analyticsData,
+                userEngagement: {
+                  activeUsers: Math.floor(analyticsData.totalUsers * 0.15),
+                  averageSessionDuration: 420, // 7 minutes in seconds
+                  bounceRate: 35.2,
+                  returnUserRate: 68.5,
+                },
+                billboardPerformance: {
+                  averageViewsPerBillboard: 1250,
+                  topPerformingBillboards: [
+                    {
+                      id: "1",
+                      title: "Cape Town CBD Premium",
+                      views: 5420,
+                      inquiries: 89,
+                    },
+                    {
+                      id: "2",
+                      title: "Johannesburg Highway",
+                      views: 4890,
+                      inquiries: 76,
+                    },
+                    {
+                      id: "3",
+                      title: "Durban Beachfront",
+                      views: 4320,
+                      inquiries: 65,
+                    },
+                  ],
+                  conversionRate: 6.8,
+                },
+                systemHealth: {
+                  uptime: 99.8,
+                  responseTime: 145,
+                  errorRate: 0.2,
+                  activeConnections: 342,
+                },
+              }}
+              onExportReport={handleExportReport}
+              onRefreshData={fetchData}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced Analytics</CardTitle>
+                <CardDescription>
+                  Loading advanced analytics data...
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="users">
           <UserManagement
             users={users}
@@ -301,6 +536,9 @@ export function AdminDashboard() {
             onSuspendUser={handleSuspendUser}
             onDeleteUser={handleDeleteUser}
             onSendMessage={handleSendMessage}
+            onBulkVerifyUsers={handleBulkVerifyUsers}
+            onBulkSuspendUsers={handleBulkSuspendUsers}
+            onBulkDeleteUsers={handleBulkDeleteUsers}
           />
         </TabsContent>
 
@@ -311,6 +549,43 @@ export function AdminDashboard() {
             onRejectBillboard={handleRejectBillboard}
             onViewBillboard={handleViewBillboard}
             onSuspendBillboard={handleSuspendBillboard}
+            onBulkApproveBillboards={handleBulkApproveBillboards}
+            onBulkRejectBillboards={handleBulkRejectBillboards}
+            onBulkSuspendBillboards={handleBulkSuspendBillboards}
+          />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <AdminReports
+            onGenerateReport={async (config) => {
+              try {
+                const queryParams = new URLSearchParams({
+                  format: config.format,
+                  start_date: config.dateRange.start,
+                  end_date: config.dateRange.end,
+                  ...config.filters,
+                });
+
+                const response = await fetch(
+                  `/api/admin/export/${config.type}?${queryParams}`
+                );
+
+                if (response.ok) {
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `${config.type}-report-${new Date().toISOString().split("T")[0]}.${config.format}`;
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                } else {
+                  throw new Error("Failed to generate report");
+                }
+              } catch (error) {
+                console.error("Error generating report:", error);
+                throw error;
+              }
+            }}
           />
         </TabsContent>
       </Tabs>

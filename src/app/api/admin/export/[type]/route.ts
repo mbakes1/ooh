@@ -15,13 +15,48 @@ export async function GET(
     }
 
     const { type: exportType } = await params;
+    const { searchParams } = new URL(request.url);
+    const format = searchParams.get("format") || "csv";
+    const startDate = searchParams.get("start_date");
+    const endDate = searchParams.get("end_date");
 
-    let csvData = "";
-    const filename = `${exportType}-export-${new Date().toISOString().split("T")[0]}.csv`;
+    // Build date filter
+    const dateFilter =
+      startDate && endDate
+        ? {
+            createdAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate + "T23:59:59.999Z"),
+            },
+          }
+        : {};
+
+    let data = "";
+    const timestamp = new Date().toISOString().split("T")[0];
+    const filename = `${exportType}-export-${timestamp}.${format}`;
 
     switch (exportType) {
       case "users":
+        // Apply filters
+        const userFilters = {
+          ...dateFilter,
+          ...(searchParams.get("role") && { role: searchParams.get("role") }),
+          ...(searchParams.get("verified") && {
+            verified: searchParams.get("verified") === "true",
+          }),
+          ...(searchParams.get("suspended") && {
+            suspended: searchParams.get("suspended") === "true",
+          }),
+          ...(searchParams.get("location") && {
+            location: {
+              contains: searchParams.get("location"),
+              mode: "insensitive",
+            },
+          }),
+        };
+
         const users = await prisma.user.findMany({
+          where: userFilters,
           include: {
             _count: {
               select: {
@@ -67,11 +102,35 @@ export async function GET(
           ].join(",")
         );
 
-        csvData = [userHeaders, ...userRows].join("\n");
+        data = [userHeaders, ...userRows].join("\n");
         break;
 
       case "billboards":
+        // Apply filters
+        const billboardFilters = {
+          ...dateFilter,
+          ...(searchParams.get("status") && {
+            status: searchParams.get("status"),
+          }),
+          ...(searchParams.get("province") && {
+            province: searchParams.get("province"),
+          }),
+          ...(searchParams.get("city") && {
+            city: { contains: searchParams.get("city"), mode: "insensitive" },
+          }),
+          ...(searchParams.get("min_price") && {
+            basePrice: { gte: parseFloat(searchParams.get("min_price")!) },
+          }),
+          ...(searchParams.get("max_price") && {
+            basePrice: { lte: parseFloat(searchParams.get("max_price")!) },
+          }),
+          ...(searchParams.get("traffic_level") && {
+            trafficLevel: searchParams.get("traffic_level"),
+          }),
+        };
+
         const billboards = await prisma.billboard.findMany({
+          where: billboardFilters,
           include: {
             owner: {
               select: {
@@ -122,11 +181,12 @@ export async function GET(
           ].join(",")
         );
 
-        csvData = [billboardHeaders, ...billboardRows].join("\n");
+        data = [billboardHeaders, ...billboardRows].join("\n");
         break;
 
       case "messages":
         const messages = await prisma.message.findMany({
+          where: dateFilter,
           include: {
             sender: {
               select: {
@@ -167,7 +227,7 @@ export async function GET(
           ].join(",")
         );
 
-        csvData = [messageHeaders, ...messageRows].join("\n");
+        data = [messageHeaders, ...messageRows].join("\n");
         break;
 
       case "analytics":
@@ -216,7 +276,7 @@ export async function GET(
           ["Revenue This Month", analytics.revenueThisMonth, ""],
         ].map((row) => row.join(","));
 
-        csvData = [analyticsHeaders, ...analyticsRows].join("\n");
+        data = [analyticsHeaders, ...analyticsRows].join("\n");
         break;
 
       default:
@@ -226,9 +286,18 @@ export async function GET(
         );
     }
 
-    return new NextResponse(csvData, {
+    // Determine content type based on format
+    let contentType = "text/csv";
+    if (format === "xlsx") {
+      contentType =
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    } else if (format === "pdf") {
+      contentType = "application/pdf";
+    }
+
+    return new NextResponse(data, {
       headers: {
-        "Content-Type": "text/csv",
+        "Content-Type": contentType,
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });

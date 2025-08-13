@@ -43,6 +43,15 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
   enableExport?: boolean;
   exportFilename?: string;
+  enableBulkActions?: boolean;
+  bulkActions?: Array<{
+    label: string;
+    onClick: (selectedRows: TData[]) => void;
+    variant?: "default" | "destructive";
+    icon?: React.ComponentType<{ className?: string }>;
+  }>;
+  loading?: boolean;
+  pageSize?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -53,6 +62,10 @@ export function DataTable<TData, TValue>({
   onRowClick,
   enableExport = false,
   exportFilename = "data",
+  enableBulkActions = false,
+  bulkActions = [],
+  loading = false,
+  pageSize = 10,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -73,6 +86,11 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    initialState: {
+      pagination: {
+        pageSize,
+      },
+    },
     state: {
       sorting,
       columnFilters,
@@ -107,6 +125,10 @@ export function DataTable<TData, TValue>({
     window.URL.revokeObjectURL(url);
   };
 
+  const selectedRows = table
+    .getFilteredSelectedRowModel()
+    .rows.map((row) => row.original);
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
@@ -123,6 +145,24 @@ export function DataTable<TData, TValue>({
           />
         )}
         <div className="ml-auto flex items-center space-x-2">
+          {enableBulkActions && selectedRows.length > 0 && (
+            <div className="flex items-center space-x-2">
+              {bulkActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant={action.variant || "outline"}
+                  size="sm"
+                  onClick={() => action.onClick(selectedRows)}
+                  className="flex items-center space-x-1"
+                >
+                  {action.icon && <action.icon className="h-4 w-4" />}
+                  <span>
+                    {action.label} ({selectedRows.length})
+                  </span>
+                </Button>
+              ))}
+            </div>
+          )}
           {enableExport && (
             <Button variant="outline" onClick={exportToCSV}>
               Export CSV
@@ -177,7 +217,19 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    <span>Loading...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -208,12 +260,27 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="flex items-center space-x-2">
+          <div className="text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} of{" "}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
+          {enableBulkActions && selectedRows.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.resetRowSelection()}
+            >
+              Clear Selection
+            </Button>
+          )}
         </div>
-        <div className="space-x-2">
+        <div className="flex items-center space-x-2">
+          <div className="text-sm text-muted-foreground">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -250,6 +317,31 @@ export function createSortableHeader(title: string) {
     );
   };
   return SortableHeader;
+}
+
+// Helper function to create checkbox column for bulk selection
+export function createCheckboxColumn() {
+  return {
+    id: "select",
+    header: ({ table }: { table: any }) => (
+      <input
+        type="checkbox"
+        checked={table.getIsAllPageRowsSelected()}
+        onChange={(e) => table.toggleAllPageRowsSelected(e.target.checked)}
+        className="rounded border border-gray-300"
+      />
+    ),
+    cell: ({ row }: { row: any }) => (
+      <input
+        type="checkbox"
+        checked={row.getIsSelected()}
+        onChange={(e) => row.toggleSelected(e.target.checked)}
+        className="rounded border border-gray-300"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  };
 }
 
 // Helper function to create action column

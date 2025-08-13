@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useWebSocket } from "@/components/providers/websocket-provider";
+import {
+  joinConversation,
+  leaveConversation,
+  markMessageAsRead,
+} from "@/lib/websocket/client";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,10 +75,12 @@ export function ConversationThread({
   onBack,
 }: ConversationThreadProps) {
   const { data: session } = useSession();
+  const { socket } = useWebSocket();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -82,14 +90,107 @@ export function ConversationThread({
   useEffect(() => {
     fetchConversation();
 
-    // Set up polling for real-time updates
-    const interval = setInterval(() => {
-      fetchConversation();
-    }, 5000); // Poll every 5 seconds
+    // Join conversation room for real-time updates
+    if (socket) {
+      joinConversation(conversationId);
+    }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (socket) {
+        leaveConversation(conversationId);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId]);
+  }, [conversationId, socket]);
+
+  useEffect(() => {
+    if (socket) {
+      // Listen for new messages
+      socket.on("newMessage", (data) => {
+        if (data.conversationId === conversationId) {
+          setConversation((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              messages: [
+                ...prev.messages,
+                {
+                  id: data.id,
+                  content: data.content,
+                  createdAt: data.createdAt,
+                  readAt: null,
+                  sender: {
+                    id: data.senderId,
+                    name: data.senderName,
+                    avatarUrl: data.senderAvatar,
+                  },
+                },
+              ],
+            };
+          });
+
+          // Mark message as read if it's from another user
+          if (data.senderId !== session?.user?.id) {
+            setTimeout(() => {
+              markMessageAsRead(data.id, conversationId);
+            }, 1000);
+          }
+        }
+      });
+
+      // Listen for message read receipts
+      socket.on("messageRead", (data) => {
+        if (data.conversationId === conversationId) {
+          setConversation((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              messages: prev.messages.map((msg) =>
+                msg.id === data.messageId
+                  ? { ...msg, readAt: data.readAt }
+                  : msg
+              ),
+            };
+          });
+        }
+      });
+
+      // Listen for typing indicators
+      socket.on("typing", (data) => {
+        if (
+          data.conversationId === conversationId &&
+          data.userId !== session?.user?.id
+        ) {
+          setTypingUsers((prev) => {
+            const newSet = new Set(prev);
+            if (data.isTyping) {
+              newSet.add(data.userId);
+            } else {
+              newSet.delete(data.userId);
+            }
+            return newSet;
+          });
+
+          // Clear typing indicator after 3 seconds
+          if (data.isTyping) {
+            setTimeout(() => {
+              setTypingUsers((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(data.userId);
+                return newSet;
+              });
+            }, 3000);
+          }
+        }
+      });
+
+      return () => {
+        socket.off("newMessage");
+        socket.off("messageRead");
+        socket.off("typing");
+      };
+    }
+  }, [socket, conversationId, session?.user?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -155,8 +256,7 @@ export function ConversationThread({
         throw new Error("Failed to send message");
       }
 
-      // Refresh conversation to get new message
-      await fetchConversation();
+      // Message will be added via WebSocket, no need to refresh
     } catch (err) {
       console.error("Failed to send message:", err);
     } finally {

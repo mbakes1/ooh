@@ -14,6 +14,7 @@ import {
   DataTable,
   createSortableHeader,
   createActionColumn,
+  createCheckboxColumn,
 } from "@/components/ui/data-table";
 import { Billboard } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -25,6 +26,9 @@ interface BillboardModerationProps {
   onRejectBillboard: (billboardId: string, reason: string) => void;
   onViewBillboard: (billboardId: string) => void;
   onSuspendBillboard: (billboardId: string) => void;
+  onBulkApproveBillboards?: (billboardIds: string[]) => void;
+  onBulkRejectBillboards?: (billboardIds: string[], reason: string) => void;
+  onBulkSuspendBillboards?: (billboardIds: string[]) => void;
 }
 
 export function BillboardModeration({
@@ -33,8 +37,12 @@ export function BillboardModeration({
   onRejectBillboard,
   onViewBillboard,
   onSuspendBillboard,
+  onBulkApproveBillboards,
+  onBulkRejectBillboards,
+  onBulkSuspendBillboards,
 }: BillboardModerationProps) {
   const columns: ColumnDef<Billboard>[] = [
+    createCheckboxColumn(),
     {
       accessorKey: "title",
       header: createSortableHeader("Title"),
@@ -172,6 +180,41 @@ export function BillboardModeration({
     (b) => b.status === "SUSPENDED"
   ).length;
 
+  const bulkActions = [
+    {
+      label: "Approve Selected",
+      onClick: (selectedBillboards: Billboard[]) => {
+        const billboardIds = selectedBillboards.map(
+          (billboard) => billboard.id
+        );
+        onBulkApproveBillboards?.(billboardIds);
+      },
+      icon: CheckCircle,
+    },
+    {
+      label: "Reject Selected",
+      onClick: (selectedBillboards: Billboard[]) => {
+        const billboardIds = selectedBillboards.map(
+          (billboard) => billboard.id
+        );
+        onBulkRejectBillboards?.(billboardIds, "Bulk rejection");
+      },
+      variant: "destructive" as const,
+      icon: XCircle,
+    },
+    {
+      label: "Suspend Selected",
+      onClick: (selectedBillboards: Billboard[]) => {
+        const billboardIds = selectedBillboards.map(
+          (billboard) => billboard.id
+        );
+        onBulkSuspendBillboards?.(billboardIds);
+      },
+      variant: "destructive" as const,
+      icon: XCircle,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -236,6 +279,8 @@ export function BillboardModeration({
             searchPlaceholder="Search billboards..."
             enableExport={true}
             exportFilename="billboards-moderation"
+            enableBulkActions={true}
+            bulkActions={bulkActions}
           />
         </CardContent>
       </Card>

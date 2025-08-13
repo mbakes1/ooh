@@ -14,6 +14,7 @@ import {
   DataTable,
   createSortableHeader,
   createActionColumn,
+  createCheckboxColumn,
 } from "@/components/ui/data-table";
 import { User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -33,6 +34,9 @@ interface UserManagementProps {
   onSuspendUser: (userId: string) => void;
   onDeleteUser: (userId: string) => void;
   onSendMessage: (userId: string) => void;
+  onBulkVerifyUsers?: (userIds: string[]) => void;
+  onBulkSuspendUsers?: (userIds: string[]) => void;
+  onBulkDeleteUsers?: (userIds: string[]) => void;
 }
 
 export function UserManagement({
@@ -41,8 +45,12 @@ export function UserManagement({
   onSuspendUser,
   onDeleteUser,
   onSendMessage,
+  onBulkVerifyUsers,
+  onBulkSuspendUsers,
+  onBulkDeleteUsers,
 }: UserManagementProps) {
   const columns: ColumnDef<UserWithCounts>[] = [
+    createCheckboxColumn(),
     {
       accessorKey: "name",
       header: createSortableHeader("Name"),
@@ -143,6 +151,35 @@ export function UserManagement({
   const owners = users.filter((user) => user.role === "OWNER").length;
   const advertisers = users.filter((user) => user.role === "ADVERTISER").length;
 
+  const bulkActions = [
+    {
+      label: "Verify Selected",
+      onClick: (selectedUsers: UserWithCounts[]) => {
+        const userIds = selectedUsers.map((user) => user.id);
+        onBulkVerifyUsers?.(userIds);
+      },
+      icon: UserCheck,
+    },
+    {
+      label: "Suspend Selected",
+      onClick: (selectedUsers: UserWithCounts[]) => {
+        const userIds = selectedUsers.map((user) => user.id);
+        onBulkSuspendUsers?.(userIds);
+      },
+      variant: "destructive" as const,
+      icon: UserX,
+    },
+    {
+      label: "Delete Selected",
+      onClick: (selectedUsers: UserWithCounts[]) => {
+        const userIds = selectedUsers.map((user) => user.id);
+        onBulkDeleteUsers?.(userIds);
+      },
+      variant: "destructive" as const,
+      icon: UserX,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -206,6 +243,8 @@ export function UserManagement({
             searchPlaceholder="Search users..."
             enableExport={true}
             exportFilename="users"
+            enableBulkActions={true}
+            bulkActions={bulkActions}
           />
         </CardContent>
       </Card>

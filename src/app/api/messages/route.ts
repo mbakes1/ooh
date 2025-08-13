@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { sendMessageNotification } from "@/lib/email";
+import { NotificationService } from "@/lib/notifications/service";
+import { emitNewMessage } from "@/lib/websocket/server";
 
 const sendMessageSchema = z.object({
   conversationId: z.string(),
@@ -117,7 +119,35 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if email fails
     }
 
-    // TODO: Send real-time notification via WebSocket
+    // Send real-time notification via WebSocket
+    try {
+      emitNewMessage({
+        conversationId: validatedData.conversationId,
+        message: {
+          id: message.id,
+          content: message.content,
+          senderId: message.senderId,
+          senderName: message.sender.name,
+          senderAvatar: message.sender.avatarUrl,
+          createdAt: message.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to send real-time notification:", error);
+    }
+
+    // Create in-app notification
+    try {
+      await NotificationService.createMessageNotification({
+        recipientId: recipient.id,
+        senderName: message.sender.name,
+        messageContent: message.content,
+        conversationId: validatedData.conversationId,
+        billboardTitle: updatedConversation.billboard?.title,
+      });
+    } catch (error) {
+      console.error("Failed to create in-app notification:", error);
+    }
 
     return NextResponse.json({
       success: true,
