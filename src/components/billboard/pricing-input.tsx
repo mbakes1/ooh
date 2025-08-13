@@ -5,6 +5,7 @@ import { DollarSign, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import {
   cn,
   formatZAR,
@@ -62,28 +63,48 @@ export function PricingInput({
       </div>
 
       {/* Base Price Input */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         <Label htmlFor="basePrice">
           Daily Base Price ({southAfricanTerminology.currencyCode}) *
         </Label>
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-            {southAfricanTerminology.currencySymbol}
-          </div>
-          <Input
-            id="basePrice"
-            type="text"
-            placeholder="0.00"
-            value={displayValue}
-            onChange={(e) => handlePriceChange(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            className="pl-8"
+        <div className="space-y-4">
+          <Slider
+            value={[basePrice || 100]}
+            onValueChange={(values) => {
+              const newPrice = values[0];
+              onBasePriceChange(newPrice);
+              setDisplayValue(formatZAR(newPrice));
+            }}
+            min={100}
+            max={10000}
+            step={50}
+            className="w-full"
           />
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                {southAfricanTerminology.currencySymbol}
+              </div>
+              <Input
+                id="basePrice"
+                type="text"
+                placeholder="0.00"
+                value={displayValue}
+                onChange={(e) => handlePriceChange(e.target.value)}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                className="pl-8"
+              />
+            </div>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              R100 - R10,000 range
+            </span>
+          </div>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Enter your daily rate in South African{" "}
-          {southAfricanTerminology.currency}
+          {southAfricanTerminology.currency}. Use the slider for quick
+          adjustments.
         </p>
       </div>
 

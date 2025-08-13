@@ -120,3 +120,6 @@ export interface SearchResult<T> {
   limit: number;
   hasMore: boolean;
 }
+
+// Re-export UI types for convenience
+export * from "./ui";

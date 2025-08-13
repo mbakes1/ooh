@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NotificationSettings } from "@/components/notifications/notification-settings";
+import { PageLayout } from "@/components/navigation/page-layout";
 import { formatDistanceToNow } from "date-fns";
 import {
   Bell,
@@ -195,7 +196,7 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <PageLayout className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -362,6 +363,6 @@ export default function NotificationsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

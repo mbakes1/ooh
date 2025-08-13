@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import {
   Select,
   SelectContent,
@@ -77,6 +78,20 @@ export function LocationInput({
     }
   }, [province, city, onCityChange]);
 
+  // Convert provinces to combobox options
+  const provinceOptions: ComboboxOption[] = southAfricanProvinces.map(
+    (prov) => ({
+      value: prov,
+      label: prov,
+    })
+  );
+
+  // Convert cities to combobox options
+  const cityOptions: ComboboxOption[] = citySuggestions.map((cityName) => ({
+    value: cityName,
+    label: cityName,
+  }));
+
   // Mock address suggestions (in a real app, this would use Google Places API or similar)
   const getAddressSuggestions = (query: string) => {
     if (query.length < 3) return [];
@@ -131,54 +146,30 @@ export function LocationInput({
       {/* Province Selection */}
       <div className="space-y-2">
         <Label htmlFor="province">Province *</Label>
-        <Select value={province} onValueChange={onProvinceChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a province" />
-          </SelectTrigger>
-          <SelectContent>
-            {southAfricanProvinces.map((prov) => (
-              <SelectItem key={prov} value={prov}>
-                {prov}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Combobox
+          options={provinceOptions}
+          value={province}
+          onValueChange={onProvinceChange}
+          placeholder="Select a province"
+          searchPlaceholder="Search provinces..."
+          emptyText="No province found."
+        />
       </div>
 
-      {/* City Input with Suggestions */}
-      <div className="space-y-2 relative">
+      {/* City Selection */}
+      <div className="space-y-2">
         <Label htmlFor="city">City *</Label>
-        <div className="relative">
-          <Input
-            id="city"
-            type="text"
-            placeholder="Enter city name"
-            value={city}
-            onChange={(e) => handleCitySearch(e.target.value)}
-            onFocus={() => setShowCitySuggestions(citySuggestions.length > 0)}
-            onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
-          />
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        </div>
-
-        {showCitySuggestions && (
-          <Card className="absolute z-10 w-full mt-1 max-h-48 overflow-y-auto">
-            {citySuggestions
-              .filter((cityName) =>
-                cityName.toLowerCase().includes(city.toLowerCase())
-              )
-              .map((cityName) => (
-                <Button
-                  key={cityName}
-                  variant="ghost"
-                  className="w-full justify-start text-left h-auto p-3 rounded-none"
-                  onClick={() => selectCitySuggestion(cityName)}
-                >
-                  {cityName}
-                </Button>
-              ))}
-          </Card>
-        )}
+        <Combobox
+          options={cityOptions}
+          value={city}
+          onValueChange={onCityChange}
+          placeholder={province ? "Select a city" : "Select a province first"}
+          searchPlaceholder="Search cities..."
+          emptyText={
+            province ? "No city found." : "Please select a province first."
+          }
+          disabled={!province || cityOptions.length === 0}
+        />
       </div>
 
       {/* Address Input with Suggestions */}

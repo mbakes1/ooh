@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
+import { DashboardLayout } from "@/components/navigation/dashboard-layout";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard - Digital Billboard Marketplace",
@@ -22,5 +23,9 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  return <AdminDashboard />;
+  return (
+    <DashboardLayout>
+      <AdminDashboard />
+    </DashboardLayout>
+  );
 }

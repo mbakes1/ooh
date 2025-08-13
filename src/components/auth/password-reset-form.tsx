@@ -7,8 +7,23 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { FormWrapper } from "@/components/ui/form-wrapper";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { ErrorAlert } from "@/components/ui/error-alert";
+import { SuccessAlert } from "@/components/ui/success-alert";
 import {
   passwordResetRequestSchema,
   type PasswordResetRequestInput,
@@ -19,12 +34,11 @@ export function PasswordResetRequestForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<PasswordResetRequestInput>({
+  const form = useForm<PasswordResetRequestInput>({
     resolver: zodResolver(passwordResetRequestSchema),
+    defaultValues: {
+      email: "",
+    },
   });
 
   const onSubmit = async (data: PasswordResetRequestInput) => {
@@ -58,67 +72,80 @@ export function PasswordResetRequestForm() {
 
   if (success) {
     return (
-      <FormWrapper
-        title="Check Your Email"
-        description="We've sent a password reset link to your email address"
-      >
-        <div className="text-center space-y-4">
-          <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-700">
-              If an account with that email exists, you&apos;ll receive a
-              password reset link shortly.
-            </p>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">
+            Check Your Email
+          </CardTitle>
+          <CardDescription className="text-center">
+            We've sent a password reset link to your email address
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center space-y-4">
+            <SuccessAlert message="If an account with that email exists, you'll receive a password reset link shortly." />
+            <Link
+              href="/auth/login"
+              className="inline-block text-primary hover:text-primary/80 font-medium"
+            >
+              Back to Sign In
+            </Link>
           </div>
-          <Link
-            href="/auth/login"
-            className="inline-block text-blue-600 hover:text-blue-500 font-medium"
-          >
-            Back to Sign In
-          </Link>
-        </div>
-      </FormWrapper>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <FormWrapper
-      title="Reset Password"
-      description="Enter your email address and we'll send you a reset link"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-            {error}
-          </div>
-        )}
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">
+          Reset Password
+        </CardTitle>
+        <CardDescription className="text-center">
+          Enter your email address and we'll send you a reset link
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <ErrorAlert message={error} onDismiss={() => setError(null)} />
+            )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            {...register("email")}
-            className={errors.email ? "border-red-500" : ""}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Sending..." : "Send Reset Link"}
-        </Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send Reset Link"}
+            </Button>
 
-        <div className="text-center text-sm">
-          <Link
-            href="/auth/login"
-            className="text-blue-600 hover:text-blue-500 font-medium"
-          >
-            Back to Sign In
-          </Link>
-        </div>
-      </form>
-    </FormWrapper>
+            <div className="text-center text-sm">
+              <Link
+                href="/auth/login"
+                className="text-primary hover:text-primary/80 font-medium"
+              >
+                Back to Sign In
+              </Link>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

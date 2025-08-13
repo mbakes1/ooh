@@ -9,8 +9,29 @@ import { UserRole } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { FormWrapper } from "@/components/ui/form-wrapper";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ErrorAlert } from "@/components/ui/error-alert";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 export function RegisterForm() {
@@ -19,16 +40,21 @@ export function RegisterForm() {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<RegisterInput>({
+  const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      role: undefined,
+      businessName: "",
+      contactNumber: "",
+      location: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
-  const selectedRole = watch("role");
+  const selectedRole = form.watch("role");
 
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
@@ -66,172 +92,216 @@ export function RegisterForm() {
 
   if (success) {
     return (
-      <FormWrapper
-        title="Registration Successful!"
-        description="Your account has been created. Redirecting to login..."
-      >
-        <div className="text-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        </div>
-      </FormWrapper>
+      <Card className="w-full max-w-lg mx-auto">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">
+            Registration Successful!
+          </CardTitle>
+          <CardDescription className="text-center">
+            Your account has been created. Redirecting to login...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <FormWrapper
-      title="Create Account"
-      description="Join the Digital Billboard Marketplace"
-      className="max-w-lg"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input
-            id="name"
-            type="text"
-            placeholder="Enter your full name"
-            {...register("name")}
-            className={errors.name ? "border-red-500" : ""}
-          />
-          {errors.name && (
-            <p className="text-sm text-red-600">{errors.name.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            {...register("email")}
-            className={errors.email ? "border-red-500" : ""}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="role">Account Type</Label>
-          <select
-            id="role"
-            {...register("role")}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.role ? "border-red-500" : "border-gray-300"
-            }`}
-          >
-            <option value="">Select your role</option>
-            <option value={UserRole.ADVERTISER}>
-              Advertiser - Looking for billboard spaces
-            </option>
-            <option value={UserRole.OWNER}>
-              Billboard Owner - Have spaces to advertise
-            </option>
-          </select>
-          {errors.role && (
-            <p className="text-sm text-red-600">{errors.role.message}</p>
-          )}
-        </div>
-
-        {selectedRole === UserRole.OWNER && (
-          <div className="space-y-2">
-            <Label htmlFor="businessName">Business Name</Label>
-            <Input
-              id="businessName"
-              type="text"
-              placeholder="Enter your business name"
-              {...register("businessName")}
-              className={errors.businessName ? "border-red-500" : ""}
-            />
-            {errors.businessName && (
-              <p className="text-sm text-red-600">
-                {errors.businessName.message}
-              </p>
+    <Card className="w-full max-w-lg mx-auto">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">
+          Create Account
+        </CardTitle>
+        <CardDescription className="text-center">
+          Join the Digital Billboard Marketplace
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <ErrorAlert message={error} onDismiss={() => setError(null)} />
             )}
-          </div>
-        )}
 
-        <div className="space-y-2">
-          <Label htmlFor="contactNumber">Contact Number</Label>
-          <Input
-            id="contactNumber"
-            type="tel"
-            placeholder="e.g., +27123456789 or 0123456789"
-            {...register("contactNumber")}
-            className={errors.contactNumber ? "border-red-500" : ""}
-          />
-          {errors.contactNumber && (
-            <p className="text-sm text-red-600">
-              {errors.contactNumber.message}
-            </p>
-          )}
-        </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="Enter your full name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            type="text"
-            placeholder="City, Province (e.g., Cape Town, Western Cape)"
-            {...register("location")}
-            className={errors.location ? "border-red-500" : ""}
-          />
-          {errors.location && (
-            <p className="text-sm text-red-600">{errors.location.message}</p>
-          )}
-        </div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Create a strong password"
-            {...register("password")}
-            className={errors.password ? "border-red-500" : ""}
-          />
-          {errors.password && (
-            <p className="text-sm text-red-600">{errors.password.message}</p>
-          )}
-        </div>
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={UserRole.ADVERTISER}>
+                        Advertiser - Looking for billboard spaces
+                      </SelectItem>
+                      <SelectItem value={UserRole.OWNER}>
+                        Billboard Owner - Have spaces to advertise
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="Confirm your password"
-            {...register("confirmPassword")}
-            className={errors.confirmPassword ? "border-red-500" : ""}
-          />
-          {errors.confirmPassword && (
-            <p className="text-sm text-red-600">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
+            {selectedRole === UserRole.OWNER && (
+              <FormField
+                control={form.control}
+                name="businessName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Enter your business name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating Account..." : "Create Account"}
-        </Button>
+            <FormField
+              control={form.control}
+              name="contactNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="tel"
+                      placeholder="e.g., +27123456789 or 0123456789"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="text-center text-sm">
-          <span className="text-gray-600">Already have an account? </span>
-          <Link
-            href="/auth/login"
-            className="text-blue-600 hover:text-blue-500 font-medium"
-          >
-            Sign in
-          </Link>
-        </div>
-      </form>
-    </FormWrapper>
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="City, Province (e.g., Cape Town, Western Cape)"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Create a strong password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Confirm your password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Creating Account..." : "Create Account"}
+            </Button>
+
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">
+                Already have an account?{" "}
+              </span>
+              <Link
+                href="/auth/login"
+                className="text-primary hover:text-primary/80 font-medium"
+              >
+                Sign in
+              </Link>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Save, Eye } from "lucide-react";
+import { Loader2, Save, Eye, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
@@ -15,6 +22,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { ImageUpload } from "./image-upload";
 import { LocationInput } from "./location-input";
@@ -42,8 +50,8 @@ export function BillboardListingForm({
   className,
 }: BillboardListingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const [activeTab, setActiveTab] = useState("basic");
+  const [completedTabs, setCompletedTabs] = useState<Set<string>>(new Set());
 
   const form = useForm<BillboardListingInput>({
     resolver: zodResolver(billboardListingSchema),
@@ -76,243 +84,367 @@ export function BillboardListingForm({
     }
   };
 
-  const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+  // Validate current tab and mark as completed
+  const validateAndCompleteTab = async (tabId: string) => {
+    const fields = getFieldsForTab(tabId);
+    const isValid = await form.trigger(fields);
+
+    if (isValid) {
+      setCompletedTabs((prev) => new Set([...prev, tabId]));
+    } else {
+      // Remove from completed tabs if validation fails
+      setCompletedTabs((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(tabId);
+        return newSet;
+      });
+    }
+    return isValid;
+  };
+
+  // Real-time validation on field change
+  const handleFieldChange = async (
+    fieldName: keyof BillboardListingInput,
+    value: any
+  ) => {
+    form.setValue(fieldName, value);
+
+    // Trigger validation for the specific field
+    await form.trigger(fieldName);
+
+    // Check if current tab should be marked as completed
+    const currentTabFields = getFieldsForTab(activeTab);
+    if (currentTabFields.includes(fieldName)) {
+      await validateAndCompleteTab(activeTab);
     }
   };
 
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+  // Get form fields for each tab for validation
+  const getFieldsForTab = (tabId: string): (keyof BillboardListingInput)[] => {
+    switch (tabId) {
+      case "basic":
+        return ["title", "description"];
+      case "location":
+        return ["address", "city", "province", "postalCode"];
+      case "specifications":
+        return [
+          "width",
+          "height",
+          "resolution",
+          "brightness",
+          "viewingDistance",
+          "trafficLevel",
+        ];
+      case "pricing":
+        return ["basePrice"];
+      case "media":
+        return ["images"];
+      default:
+        return [];
     }
   };
 
-  const steps = [
+  const tabs = [
     {
-      number: 1,
-      title: "Basic Information",
+      id: "basic",
+      title: "Basic Info",
       description: "Title and description",
+      icon: "📝",
     },
     {
-      number: 2,
+      id: "location",
       title: "Location",
-      description: "Address and location details",
+      description: "Address details",
+      icon: "📍",
     },
-    { number: 3, title: "Specifications", description: "Technical details" },
-    { number: 4, title: "Pricing", description: "Set your rates" },
     {
-      number: 5,
-      title: "Images & Availability",
-      description: "Photos and schedule",
+      id: "specifications",
+      title: "Specifications",
+      description: "Technical details",
+      icon: "⚙️",
+    },
+    {
+      id: "pricing",
+      title: "Pricing",
+      description: "Set your rates",
+      icon: "💰",
+    },
+    {
+      id: "media",
+      title: "Media & Schedule",
+      description: "Photos and availability",
+      icon: "📸",
     },
   ];
 
   return (
-    <div className={cn("max-w-4xl mx-auto", className)}>
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center">
-              <div
-                className={cn(
-                  "flex items-center justify-center w-10 h-10 rounded-full border-2 text-sm font-medium",
-                  currentStep >= step.number
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-muted-foreground border-muted-foreground"
-                )}
-              >
-                {step.number}
-              </div>
-              <div className="ml-3 hidden sm:block">
-                <p
-                  className={cn(
-                    "text-sm font-medium",
-                    currentStep >= step.number
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {step.title}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={cn(
-                    "w-12 h-0.5 mx-4",
-                    currentStep > step.number ? "bg-primary" : "bg-muted"
-                  )}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
+    <div className={cn("max-w-6xl mx-auto", className)}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-          {/* Step 1: Basic Information */}
-          {currentStep === 1 && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-6">Basic Information</h2>
-
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Billboard Title *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., Prime Highway Billboard - N1 Cape Town"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            {/* Tab Navigation */}
+            <TabsList className="grid w-full grid-cols-5 mb-8">
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="flex items-center gap-2 text-sm"
+                  disabled={isSubmitting}
+                >
+                  <span className="text-base">{tab.icon}</span>
+                  <div className="hidden sm:block">
+                    <div className="font-medium">{tab.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {tab.description}
+                    </div>
+                  </div>
+                  {completedTabs.has(tab.id) && (
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
                   )}
-                />
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <textarea
-                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder="Describe your billboard location, visibility, and any special features..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </Card>
-          )}
+            {/* Tab Content */}
+            <TabsContent value="basic" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-xl">📝</span>
+                    Basic Information
+                  </CardTitle>
+                  <CardDescription>
+                    Provide the essential details about your billboard listing
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Billboard Title *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Prime Highway Billboard - N1 Cape Town"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleFieldChange("title", e.target.value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Create a descriptive title that highlights your
+                          billboard's location and key features
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-          {/* Step 2: Location */}
-          {currentStep === 2 && (
-            <Card className="p-6">
-              <LocationInput
-                address={form.watch("address")}
-                city={form.watch("city")}
-                province={form.watch("province")}
-                postalCode={form.watch("postalCode") || ""}
-                onAddressChange={(value) => form.setValue("address", value)}
-                onCityChange={(value) => form.setValue("city", value)}
-                onProvinceChange={(value) => form.setValue("province", value)}
-                onPostalCodeChange={(value) =>
-                  form.setValue("postalCode", value)
-                }
-              />
-            </Card>
-          )}
-
-          {/* Step 3: Specifications */}
-          {currentStep === 3 && (
-            <Card className="p-6">
-              <SpecificationsInput
-                width={form.watch("width")}
-                height={form.watch("height")}
-                resolution={form.watch("resolution")}
-                brightness={form.watch("brightness") || 0}
-                viewingDistance={form.watch("viewingDistance") || 0}
-                trafficLevel={form.watch("trafficLevel") || ""}
-                onWidthChange={(value) => form.setValue("width", value)}
-                onHeightChange={(value) => form.setValue("height", value)}
-                onResolutionChange={(value) =>
-                  form.setValue("resolution", value)
-                }
-                onBrightnessChange={(value) =>
-                  form.setValue("brightness", value)
-                }
-                onViewingDistanceChange={(value) =>
-                  form.setValue("viewingDistance", value)
-                }
-                onTrafficLevelChange={(value) =>
-                  form.setValue(
-                    "trafficLevel",
-                    value as TrafficLevel | undefined
-                  )
-                }
-              />
-            </Card>
-          )}
-
-          {/* Step 4: Pricing */}
-          {currentStep === 4 && (
-            <Card className="p-6">
-              <PricingInput
-                basePrice={form.watch("basePrice")}
-                onBasePriceChange={(value) => form.setValue("basePrice", value)}
-              />
-            </Card>
-          )}
-
-          {/* Step 5: Images & Availability */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Billboard Images</h3>
-                <FormField
-                  control={form.control}
-                  name="images"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <ImageUpload
-                          images={field.value}
-                          onImagesChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your billboard location, visibility, and any special features..."
+                            className="min-h-[120px]"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleFieldChange("description", e.target.value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Provide additional details about your billboard's
+                          location, visibility, and unique selling points
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
               </Card>
+            </TabsContent>
 
-              <Card className="p-6">
-                <AvailabilityCalendar />
+            <TabsContent value="location" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-xl">📍</span>
+                    Location Details
+                  </CardTitle>
+                  <CardDescription>
+                    Specify the exact location of your billboard
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LocationInput
+                    address={form.watch("address")}
+                    city={form.watch("city")}
+                    province={form.watch("province")}
+                    postalCode={form.watch("postalCode") || ""}
+                    onAddressChange={(value) =>
+                      handleFieldChange("address", value)
+                    }
+                    onCityChange={(value) => handleFieldChange("city", value)}
+                    onProvinceChange={(value) =>
+                      handleFieldChange("province", value)
+                    }
+                    onPostalCodeChange={(value) =>
+                      handleFieldChange("postalCode", value)
+                    }
+                  />
+                </CardContent>
               </Card>
-            </div>
-          )}
+            </TabsContent>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between items-center pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 1}
-            >
-              Previous
-            </Button>
+            <TabsContent value="specifications" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-xl">⚙️</span>
+                    Technical Specifications
+                  </CardTitle>
+                  <CardDescription>
+                    Define the technical details and capabilities of your
+                    billboard
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <SpecificationsInput
+                    width={form.watch("width")}
+                    height={form.watch("height")}
+                    resolution={form.watch("resolution")}
+                    brightness={form.watch("brightness") || 0}
+                    viewingDistance={form.watch("viewingDistance") || 0}
+                    trafficLevel={form.watch("trafficLevel") || ""}
+                    onWidthChange={(value) => form.setValue("width", value)}
+                    onHeightChange={(value) => form.setValue("height", value)}
+                    onResolutionChange={(value) =>
+                      form.setValue("resolution", value)
+                    }
+                    onBrightnessChange={(value) =>
+                      form.setValue("brightness", value)
+                    }
+                    onViewingDistanceChange={(value) =>
+                      form.setValue("viewingDistance", value)
+                    }
+                    onTrafficLevelChange={(value) =>
+                      form.setValue(
+                        "trafficLevel",
+                        value as TrafficLevel | undefined
+                      )
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <div className="flex gap-2">
-              {currentStep < totalSteps ? (
-                <Button type="button" onClick={nextStep}>
-                  Next
-                </Button>
-              ) : (
-                <div className="flex gap-2">
+            <TabsContent value="pricing" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-xl">💰</span>
+                    Pricing Information
+                  </CardTitle>
+                  <CardDescription>
+                    Set competitive rates for your billboard advertising space
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PricingInput
+                    basePrice={form.watch("basePrice")}
+                    onBasePriceChange={(value) =>
+                      form.setValue("basePrice", value)
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="media" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-xl">📸</span>
+                    Media & Availability
+                  </CardTitle>
+                  <CardDescription>
+                    Upload photos and set your availability schedule
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Billboard Images
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="images"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <ImageUpload
+                              images={field.value}
+                              onImagesChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Upload high-quality photos of your billboard from
+                            different angles and times of day
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Availability Schedule
+                    </h3>
+                    <AvailabilityCalendar />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* Form Actions */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  {completedTabs.size} of {tabs.length} sections completed
+                </div>
+
+                <div className="flex gap-3">
                   <Button
                     type="button"
                     variant="outline"
                     disabled={isSubmitting}
+                    onClick={async () => {
+                      // Validate current tab before preview
+                      await validateAndCompleteTab(activeTab);
+                    }}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Preview
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || completedTabs.size < tabs.length}
+                  >
                     {isSubmitting && (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     )}
@@ -320,9 +452,9 @@ export function BillboardListingForm({
                     {isEditing ? "Update Listing" : "Create Listing"}
                   </Button>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </form>
       </Form>
     </div>

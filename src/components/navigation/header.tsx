@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import {
   Menu,
-  X,
   User,
   LogOut,
   Settings,
@@ -24,6 +23,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -32,10 +44,6 @@ export function Header() {
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const getInitials = (name: string) => {
@@ -76,58 +84,74 @@ export function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-background border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <MapPin className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900 hidden sm:block">
+              <MapPin className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold text-foreground hidden sm:block">
                 Billboard Marketplace
               </span>
-              <span className="text-xl font-bold text-gray-900 sm:hidden">
+              <span className="text-xl font-bold text-foreground sm:hidden">
                 BM
               </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/search"
-              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Find Billboards
-            </Link>
-            {session?.user?.role === "OWNER" && (
-              <Link
-                href="/dashboard/listings"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                My Listings
-              </Link>
-            )}
-            <Link
-              href="/messages"
-              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors relative"
-            >
-              <div className="flex items-center space-x-1">
-                <MessageCircle className="h-4 w-4" />
-                <span>Messages</span>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </div>
-            </Link>
-          </nav>
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/search"
+                    className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    Find Billboards
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              {session?.user?.role === "OWNER" && (
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href="/dashboard/listings"
+                      className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                    >
+                      My Listings
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              )}
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/messages"
+                    className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 relative"
+                  >
+                    <div className="flex items-center space-x-1">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Messages</span>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
 
           {/* User Menu / Auth Buttons */}
           <div className="flex items-center space-x-4">
             {status === "loading" ? (
-              <div className="h-8 w-8 animate-pulse bg-gray-200 rounded-full"></div>
+              <div className="h-8 w-8 animate-pulse bg-muted rounded-full"></div>
             ) : session ? (
               <>
                 {/* Notification Center */}
@@ -205,18 +229,121 @@ export function Header() {
 
                 {/* Mobile Menu Button */}
                 <div className="md:hidden">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleMobileMenu}
-                    className="p-2"
+                  <Sheet
+                    open={isMobileMenuOpen}
+                    onOpenChange={setIsMobileMenuOpen}
                   >
-                    {isMobileMenuOpen ? (
-                      <X className="h-6 w-6" />
-                    ) : (
-                      <Menu className="h-6 w-6" />
-                    )}
-                  </Button>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-2">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Toggle menu</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent
+                      side="right"
+                      className="w-[300px] sm:w-[400px]"
+                    >
+                      <SheetHeader>
+                        <SheetTitle>Navigation Menu</SheetTitle>
+                      </SheetHeader>
+                      <nav className="flex flex-col space-y-4 mt-6">
+                        {/* User Info */}
+                        <div className="flex items-center space-x-3 pb-4 border-b">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={session.user.image || undefined}
+                              alt={session.user.name || "User"}
+                            />
+                            <AvatarFallback>
+                              {getInitials(session.user.name || "User")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {session.user.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {session.user.role?.toLowerCase()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Navigation Links */}
+                        <Link
+                          href="/search"
+                          className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span>Find Billboards</span>
+                        </Link>
+
+                        {session.user.role === "OWNER" && (
+                          <Link
+                            href="/dashboard/listings"
+                            className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <span>My Listings</span>
+                          </Link>
+                        )}
+
+                        <Link
+                          href="/messages"
+                          className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors relative"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          <span>Messages</span>
+                          {unreadCount > 0 && (
+                            <span className="bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center ml-auto">
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                          )}
+                        </Link>
+
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <User className="h-4 w-4" />
+                          <span>Dashboard</span>
+                        </Link>
+
+                        <Link
+                          href="/profile"
+                          className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>Profile Settings</span>
+                        </Link>
+
+                        {session.user.role === "ADMIN" && (
+                          <Link
+                            href="/admin"
+                            className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Admin Dashboard</span>
+                          </Link>
+                        )}
+
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            handleSignOut();
+                          }}
+                          className="justify-start p-2 h-auto font-medium"
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Sign Out
+                        </Button>
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </>
             ) : (
@@ -233,137 +360,56 @@ export function Header() {
 
                 {/* Mobile Menu Button for Unauthenticated */}
                 <div className="md:hidden">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleMobileMenu}
-                    className="p-2"
+                  <Sheet
+                    open={isMobileMenuOpen}
+                    onOpenChange={setIsMobileMenuOpen}
                   >
-                    {isMobileMenuOpen ? (
-                      <X className="h-6 w-6" />
-                    ) : (
-                      <Menu className="h-6 w-6" />
-                    )}
-                  </Button>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-2">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Toggle menu</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent
+                      side="right"
+                      className="w-[300px] sm:w-[400px]"
+                    >
+                      <SheetHeader>
+                        <SheetTitle>Navigation Menu</SheetTitle>
+                      </SheetHeader>
+                      <nav className="flex flex-col space-y-4 mt-6">
+                        <Link
+                          href="/search"
+                          className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span>Find Billboards</span>
+                        </Link>
+
+                        <Link
+                          href="/auth/login"
+                          className="flex items-center space-x-2 text-sm font-medium hover:text-accent-foreground p-2 rounded-md hover:bg-accent transition-colors"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span>Sign In</span>
+                        </Link>
+
+                        <Button asChild className="justify-start">
+                          <Link
+                            href="/auth/register"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            Get Started
+                          </Link>
+                        </Button>
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </>
             )}
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {session ? (
-                <>
-                  {/* User Info */}
-                  <div className="px-3 py-2 border-b border-gray-200 mb-2">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={session.user.image || undefined}
-                          alt={session.user.name || "User"}
-                        />
-                        <AvatarFallback>
-                          {getInitials(session.user.name || "User")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {session.user.name}
-                        </p>
-                        <p className="text-xs text-gray-500 capitalize">
-                          {session.user.role?.toLowerCase()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Navigation Links */}
-                  <Link
-                    href="/search"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Find Billboards
-                  </Link>
-                  {session.user.role === "OWNER" && (
-                    <Link
-                      href="/dashboard/listings"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      My Listings
-                    </Link>
-                  )}
-                  <Link
-                    href="/messages"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md relative"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <MessageCircle className="h-4 w-4" />
-                      <span>Messages</span>
-                      {unreadCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount > 99 ? "99+" : unreadCount}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Profile Settings
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/search"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Find Billboards
-                  </Link>
-                  <Link
-                    href="/auth/login"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="block px-3 py-2 text-base font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </header>
   );

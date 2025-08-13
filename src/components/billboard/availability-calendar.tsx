@@ -1,11 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Clock, Info } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn, getCurrentSASTTime, formatSASTDate } from "@/lib/utils";
 
 interface AvailabilityCalendarProps {
@@ -13,8 +25,8 @@ interface AvailabilityCalendarProps {
 }
 
 export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
-  const [availableFrom, setAvailableFrom] = useState("");
-  const [availableTo, setAvailableTo] = useState("");
+  const [availableFrom, setAvailableFrom] = useState<Date>();
+  const [availableTo, setAvailableTo] = useState<Date>();
   const [operatingHours, setOperatingHours] = useState({
     start: "06:00",
     end: "22:00",
@@ -45,51 +57,102 @@ export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Availability & Schedule</h3>
-      </div>
-
       {/* Availability Period */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="availableFrom">Available From</Label>
-          <Input
-            id="availableFrom"
-            type="date"
-            value={availableFrom}
-            onChange={(e) => setAvailableFrom(e.target.value)}
-            min={today}
-          />
-          <p className="text-sm text-gray-500">
-            When will this billboard be available for booking?
-          </p>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5" />
+            Availability Period
+          </CardTitle>
+          <CardDescription>
+            Set when your billboard will be available for booking
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label>Available From *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !availableFrom && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {availableFrom
+                      ? formatSASTDate(availableFrom)
+                      : "Select start date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={availableFrom}
+                    onSelect={setAvailableFrom}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="text-sm text-muted-foreground">
+                When will this billboard be available for booking?
+              </p>
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="availableTo">Available Until (Optional)</Label>
-          <Input
-            id="availableTo"
-            type="date"
-            value={availableTo}
-            onChange={(e) => setAvailableTo(e.target.value)}
-            min={availableFrom || today}
-          />
-          <p className="text-sm text-gray-500">
-            Leave empty if available indefinitely
-          </p>
-        </div>
-      </div>
+            <div className="space-y-3">
+              <Label>Available Until (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !availableTo && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {availableTo
+                      ? formatSASTDate(availableTo)
+                      : "Select end date (optional)"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={availableTo}
+                    onSelect={setAvailableTo}
+                    disabled={(date) =>
+                      date < new Date() ||
+                      (availableFrom && date < availableFrom)
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="text-sm text-muted-foreground">
+                Leave empty if available indefinitely
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Operating Hours */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="h-4 w-4 text-primary" />
-          <h4 className="font-medium">Operating Hours</h4>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Operating Hours
+          </CardTitle>
+          <CardDescription>
+            Define when your billboard displays content
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
             <Button
               type="button"
               variant={is24Hours ? "default" : "outline"}
@@ -98,7 +161,7 @@ export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
             >
               24/7 Operation
             </Button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               {is24Hours ? "Billboard operates 24 hours" : "Custom hours"}
             </span>
           </div>
@@ -129,7 +192,7 @@ export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
               </div>
             </div>
           )}
-        </div>
+        </CardContent>
       </Card>
 
       {/* Booking Information */}
@@ -153,24 +216,27 @@ export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
 
       {/* Summary */}
       {(availableFrom || operatingHours.start) && (
-        <Card className="p-4 bg-gray-50">
-          <h4 className="font-medium mb-2">Availability Summary</h4>
-          <div className="text-sm text-gray-600 space-y-1">
-            {availableFrom && (
+        <Card className="bg-muted/50">
+          <CardHeader>
+            <CardTitle className="text-base">Availability Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm space-y-2">
+              {availableFrom && (
+                <p>
+                  <strong>Available from:</strong>{" "}
+                  {formatSASTDate(availableFrom)}
+                  {availableTo && ` until ${formatSASTDate(availableTo)}`}
+                </p>
+              )}
               <p>
-                <strong>Available from:</strong>{" "}
-                {formatSASTDate(new Date(availableFrom))}
-                {availableTo &&
-                  ` until ${formatSASTDate(new Date(availableTo))}`}
+                <strong>Operating hours:</strong>{" "}
+                {is24Hours
+                  ? "24 hours a day, 7 days a week"
+                  : `${operatingHours.start} - ${operatingHours.end} daily`}
               </p>
-            )}
-            <p>
-              <strong>Operating hours:</strong>{" "}
-              {is24Hours
-                ? "24 hours a day, 7 days a week"
-                : `${operatingHours.start} - ${operatingHours.end} daily`}
-            </p>
-          </div>
+            </div>
+          </CardContent>
         </Card>
       )}
     </div>

@@ -19,3 +19,9 @@ export {
   formatSouthAfricanAddress,
   southAfricanTerminology,
 } from "@/lib/localization/south-africa";
+
+// Re-export component type utilities for easy access
+export * from "@/lib/utils/component-types";
+
+// Re-export form schemas for easy access
+export * from "@/lib/schemas/ui-forms";

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { UserRole } from "@prisma/client";
 import { BillboardDashboard } from "@/components/billboard/billboard-dashboard";
+import { DashboardLayout } from "@/components/navigation/dashboard-layout";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -17,15 +18,17 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Billboard Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your billboard listings and track performance
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Billboard Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your billboard listings and track performance
+          </p>
+        </div>
 
-      <BillboardDashboard />
-    </div>
+        <BillboardDashboard />
+      </div>
+    </DashboardLayout>
   );
 }

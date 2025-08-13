@@ -8,8 +8,22 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { FormWrapper } from "@/components/ui/form-wrapper";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { ErrorAlert } from "@/components/ui/error-alert";
 import {
   passwordResetSchema,
   type PasswordResetInput,
@@ -27,14 +41,12 @@ export function PasswordResetConfirmForm({
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<PasswordResetInput>({
+  const form = useForm<PasswordResetInput>({
     resolver: zodResolver(passwordResetSchema),
     defaultValues: {
       token,
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -74,74 +86,98 @@ export function PasswordResetConfirmForm({
 
   if (success) {
     return (
-      <FormWrapper
-        title="Password Reset Successful!"
-        description="Your password has been updated. Redirecting to login..."
-      >
-        <div className="text-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        </div>
-      </FormWrapper>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">
+            Password Reset Successful!
+          </CardTitle>
+          <CardDescription className="text-center">
+            Your password has been updated. Redirecting to login...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <FormWrapper
-      title="Set New Password"
-      description="Enter your new password below"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-            {error}
-          </div>
-        )}
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">
+          Set New Password
+        </CardTitle>
+        <CardDescription className="text-center">
+          Enter your new password below
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <ErrorAlert message={error} onDismiss={() => setError(null)} />
+            )}
 
-        <input type="hidden" {...register("token")} />
+            <FormField
+              control={form.control}
+              name="token"
+              render={({ field }) => <input type="hidden" {...field} />}
+            />
 
-        <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Enter your new password"
-            {...register("password")}
-            className={errors.password ? "border-red-500" : ""}
-          />
-          {errors.password && (
-            <p className="text-sm text-red-600">{errors.password.message}</p>
-          )}
-        </div>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter your new password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="Confirm your new password"
-            {...register("confirmPassword")}
-            className={errors.confirmPassword ? "border-red-500" : ""}
-          />
-          {errors.confirmPassword && (
-            <p className="text-sm text-red-600">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Confirm your new password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Updating Password..." : "Update Password"}
-        </Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Updating Password..." : "Update Password"}
+            </Button>
 
-        <div className="text-center text-sm">
-          <Link
-            href="/auth/login"
-            className="text-blue-600 hover:text-blue-500 font-medium"
-          >
-            Back to Sign In
-          </Link>
-        </div>
-      </form>
-    </FormWrapper>
+            <div className="text-center text-sm">
+              <Link
+                href="/auth/login"
+                className="text-primary hover:text-primary/80 font-medium"
+              >
+                Back to Sign In
+              </Link>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

@@ -16,6 +16,7 @@ import {
   SearchHistory,
   SearchHistoryItem,
 } from "@/components/search/search-history";
+import { PageLayout } from "@/components/navigation/page-layout";
 import { BillboardWithDetails, TrafficLevel } from "@/types";
 
 interface SearchResponse {
@@ -246,7 +247,7 @@ function SearchPageContent() {
   }, [results, searchQuery, filters]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <PageLayout className="container mx-auto px-4 py-8">
       <div className="space-y-6">
         {/* Page Header */}
         <div className="space-y-2">
@@ -365,7 +366,7 @@ function SearchPageContent() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
 export default function SearchPage() {
