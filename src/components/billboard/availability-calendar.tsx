@@ -124,10 +124,12 @@ export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
                     mode="single"
                     selected={availableTo}
                     onSelect={setAvailableTo}
-                    disabled={(date) =>
-                      date < new Date() ||
-                      (availableFrom && date < availableFrom)
-                    }
+                    disabled={(date) => {
+                      return (
+                        date < new Date() ||
+                        (availableFrom ? date < availableFrom : false)
+                      );
+                    }}
                     initialFocus
                   />
                 </PopoverContent>

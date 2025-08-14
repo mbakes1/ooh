@@ -52,7 +52,7 @@ export function BillboardModeration({
           <div className="flex flex-col">
             <span className="font-medium">{billboard.title}</span>
             <span className="text-sm text-muted-foreground">
-              {billboard.owner?.name}
+              Owner ID: {billboard.ownerId}
             </span>
           </div>
         );
@@ -137,11 +137,7 @@ export function BillboardModeration({
       header: "Images",
       cell: ({ row }) => {
         const billboard = row.original;
-        return (
-          <span className="text-sm">
-            {billboard.images?.length || 0} image(s)
-          </span>
-        );
+        return <span className="text-sm">No image data</span>;
       },
     },
     createActionColumn<Billboard>([

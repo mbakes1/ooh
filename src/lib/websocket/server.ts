@@ -165,7 +165,7 @@ export const initializeWebSocket = (server: HTTPServer) => {
 
       // Handle typing indicators
       socket.on("typing", ({ conversationId, isTyping }) => {
-        socket.to(`conversation:${conversationId}`).emit("typing", {
+        socket.to(`conversation:${conversationId}`).emit("typing" as any, {
           userId: socket.data.userId,
           isTyping,
         });

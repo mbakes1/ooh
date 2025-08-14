@@ -18,6 +18,13 @@ interface BreadcrumbNavProps {
   maxItems?: number;
 }
 
+interface BreadcrumbItem {
+  label: string;
+  href: string;
+  icon?: React.ReactElement;
+  isLast?: boolean;
+}
+
 export function BreadcrumbNav({ className, maxItems = 3 }: BreadcrumbNavProps) {
   const pathname = usePathname();
 
@@ -47,7 +54,7 @@ export function BreadcrumbNav({ className, maxItems = 3 }: BreadcrumbNavProps) {
       reports: "Reports",
     };
 
-    const breadcrumbs = [
+    const breadcrumbs: BreadcrumbItem[] = [
       {
         label: "Home",
         href: "/",

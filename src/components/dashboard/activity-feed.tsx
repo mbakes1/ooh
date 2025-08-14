@@ -63,7 +63,7 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
             user: {
               id: data.senderId,
               name: data.senderName,
-              avatarUrl: data.senderAvatar,
+              avatarUrl: data.senderAvatar || undefined,
             },
             data: {
               conversationId: data.conversationId,

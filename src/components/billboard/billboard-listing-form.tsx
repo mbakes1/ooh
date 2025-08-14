@@ -29,8 +29,11 @@ import { LocationInput } from "./location-input";
 import { SpecificationsInput } from "./specifications-input";
 import { PricingInput } from "./pricing-input";
 import { AvailabilityCalendar } from "./availability-calendar";
+import { RealTimeForm } from "@/components/ui/real-time-form";
+import { EnhancedFormField } from "@/components/ui/enhanced-form-field";
 import {
-  billboardListingSchema,
+  enhancedBillboardListingSchema,
+  billboardFieldValidators,
   type BillboardListingInput,
 } from "@/lib/validations/billboard";
 import { TrafficLevel } from "@prisma/client";
@@ -54,7 +57,7 @@ export function BillboardListingForm({
   const [completedTabs, setCompletedTabs] = useState<Set<string>>(new Set());
 
   const form = useForm<BillboardListingInput>({
-    resolver: zodResolver(billboardListingSchema),
+    resolver: zodResolver(enhancedBillboardListingSchema),
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
@@ -71,6 +74,7 @@ export function BillboardListingForm({
       basePrice: initialData?.basePrice || 0,
       images: initialData?.images || [],
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   const handleSubmit = async (data: BillboardListingInput) => {
@@ -179,7 +183,7 @@ export function BillboardListingForm({
 
   return (
     <div className={cn("max-w-6xl mx-auto", className)}>
-      <Form {...form}>
+      <RealTimeForm form={form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           <Tabs
             value={activeTab}
@@ -226,24 +230,21 @@ export function BillboardListingForm({
                     control={form.control}
                     name="title"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Billboard Title *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., Prime Highway Billboard - N1 Cape Town"
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              handleFieldChange("title", e.target.value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Create a descriptive title that highlights your
-                          billboard's location and key features
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
+                      <EnhancedFormField
+                        label="Billboard Title"
+                        required
+                        successMessage="Title looks good!"
+                        description="Create a descriptive title that highlights your billboard's location and key features"
+                      >
+                        <Input
+                          placeholder="e.g., Prime Highway Billboard - N1 Cape Town"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleFieldChange("title", e.target.value);
+                          }}
+                        />
+                      </EnhancedFormField>
                     )}
                   />
 
@@ -456,7 +457,7 @@ export function BillboardListingForm({
             </CardContent>
           </Card>
         </form>
-      </Form>
+      </RealTimeForm>
     </div>
   );
 }

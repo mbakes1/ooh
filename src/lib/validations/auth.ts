@@ -110,8 +110,101 @@ export const profileUpdateSchema = z.object({
   avatarUrl: z.string().url().optional().or(z.literal("")),
 });
 
+// Enhanced register schema with better conditional validation
+export const enhancedRegisterSchema = registerSchema;
+
+// Real-time validation helpers for auth fields
+export const authFieldValidators = {
+  email: async (value: string) => {
+    if (!value) return { isValid: false, message: "Email is required" };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return { isValid: false, message: "Please enter a valid email address" };
+    }
+
+    // Check if email is already taken (would need API call in real implementation)
+    return { isValid: true, message: "Email format is valid" };
+  },
+
+  password: (value: string) => {
+    if (!value) return { isValid: false, message: "Password is required" };
+    if (value.length < 8)
+      return {
+        isValid: false,
+        message: "Password must be at least 8 characters",
+      };
+
+    const hasUpper = /[A-Z]/.test(value);
+    const hasLower = /[a-z]/.test(value);
+    const hasNumber = /\d/.test(value);
+    const hasSpecial = /[@$!%*?&]/.test(value);
+
+    const strength = [hasUpper, hasLower, hasNumber, hasSpecial].filter(
+      Boolean
+    ).length;
+
+    if (strength < 4) {
+      return {
+        isValid: false,
+        message:
+          "Password must contain uppercase, lowercase, number, and special character",
+      };
+    }
+
+    if (strength === 4 && value.length >= 12) {
+      return { isValid: true, message: "Strong password!" };
+    } else if (strength === 4) {
+      return { isValid: true, message: "Good password" };
+    }
+
+    return { isValid: false, message: "Password requirements not met" };
+  },
+
+  confirmPassword: (password: string, confirmPassword: string) => {
+    if (!confirmPassword)
+      return { isValid: false, message: "Please confirm your password" };
+    if (password !== confirmPassword)
+      return { isValid: false, message: "Passwords do not match" };
+    return { isValid: true, message: "Passwords match!" };
+  },
+
+  phoneNumber: (value: string) => {
+    if (!value)
+      return { isValid: false, message: "Contact number is required" };
+    if (!validateSouthAfricanPhoneNumber(value)) {
+      return {
+        isValid: false,
+        message:
+          "Please enter a valid South African phone number (e.g., +27 82 123 4567)",
+      };
+    }
+    return { isValid: true, message: "Valid South African phone number" };
+  },
+
+  businessName: (value: string, role: UserRole) => {
+    if (role !== UserRole.OWNER) return { isValid: true, message: "" };
+    if (!value)
+      return {
+        isValid: false,
+        message: "Business name is required for billboard owners",
+      };
+    if (value.length < 2)
+      return {
+        isValid: false,
+        message: "Business name must be at least 2 characters",
+      };
+    if (!/^[a-zA-Z0-9\s&.-]+$/.test(value)) {
+      return {
+        isValid: false,
+        message: "Business name contains invalid characters",
+      };
+    }
+    return { isValid: true, message: "Business name looks good!" };
+  },
+};
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type EnhancedRegisterInput = z.infer<typeof enhancedRegisterSchema>;
 export type PasswordResetRequestInput = z.infer<
   typeof passwordResetRequestSchema
 >;

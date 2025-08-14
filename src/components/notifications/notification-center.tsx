@@ -63,7 +63,15 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   useEffect(() => {
     if (socket) {
       socket.on("notification", (data) => {
-        setNotifications((prev) => [data, ...prev]);
+        setNotifications((prev) => [
+          {
+            ...data,
+            read: false,
+            readAt: null,
+            type: data.type.toUpperCase() as any,
+          },
+          ...prev,
+        ]);
         setUnreadCount((prev) => prev + 1);
       });
 

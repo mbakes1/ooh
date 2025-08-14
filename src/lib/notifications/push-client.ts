@@ -71,7 +71,7 @@ export class PushNotificationService {
       // Subscribe to push notifications
       this.subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(publicKey),
+        applicationServerKey: this.urlBase64ToUint8Array(publicKey) as any,
       });
 
       // Send subscription to server

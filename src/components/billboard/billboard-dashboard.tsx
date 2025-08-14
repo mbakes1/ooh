@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { BillboardManagementTable } from "./billboard-management-table";
 import { BillboardStats } from "./billboard-stats";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
@@ -98,8 +98,46 @@ export function BillboardDashboard() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <RefreshCw className="h-8 w-8 animate-spin" />
+      <div className="space-y-6">
+        {/* Stats Skeleton */}
+        <BillboardStats billboards={[]} loading={true} />
+
+        {/* Actions Bar Skeleton */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <div className="h-6 w-32 bg-muted rounded animate-pulse"></div>
+            <div className="h-8 w-20 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="h-10 w-40 bg-muted rounded animate-pulse"></div>
+        </div>
+
+        {/* Table Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div className="h-6 w-48 bg-muted rounded animate-pulse"></div>
+              <div className="h-10 w-32 bg-muted rounded animate-pulse"></div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center space-x-4 p-4 border rounded"
+                >
+                  <div className="w-12 h-8 bg-muted rounded animate-pulse"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 bg-muted rounded animate-pulse"></div>
+                    <div className="h-3 w-1/2 bg-muted rounded animate-pulse"></div>
+                  </div>
+                  <div className="h-6 w-16 bg-muted rounded animate-pulse"></div>
+                  <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

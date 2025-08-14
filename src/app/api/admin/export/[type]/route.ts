@@ -40,7 +40,9 @@ export async function GET(
         // Apply filters
         const userFilters = {
           ...dateFilter,
-          ...(searchParams.get("role") && { role: searchParams.get("role") }),
+          ...(searchParams.get("role") && {
+            role: searchParams.get("role") as any,
+          }),
           ...(searchParams.get("verified") && {
             verified: searchParams.get("verified") === "true",
           }),
@@ -49,8 +51,8 @@ export async function GET(
           }),
           ...(searchParams.get("location") && {
             location: {
-              contains: searchParams.get("location"),
-              mode: "insensitive",
+              contains: searchParams.get("location") || undefined,
+              mode: "insensitive" as any,
             },
           }),
         };
@@ -110,13 +112,16 @@ export async function GET(
         const billboardFilters = {
           ...dateFilter,
           ...(searchParams.get("status") && {
-            status: searchParams.get("status"),
+            status: searchParams.get("status") as any,
           }),
           ...(searchParams.get("province") && {
-            province: searchParams.get("province"),
+            province: searchParams.get("province") || undefined,
           }),
           ...(searchParams.get("city") && {
-            city: { contains: searchParams.get("city"), mode: "insensitive" },
+            city: {
+              contains: searchParams.get("city") || undefined,
+              mode: "insensitive" as any,
+            },
           }),
           ...(searchParams.get("min_price") && {
             basePrice: { gte: parseFloat(searchParams.get("min_price")!) },
@@ -125,7 +130,7 @@ export async function GET(
             basePrice: { lte: parseFloat(searchParams.get("max_price")!) },
           }),
           ...(searchParams.get("traffic_level") && {
-            trafficLevel: searchParams.get("traffic_level"),
+            trafficLevel: searchParams.get("traffic_level") as any,
           }),
         };
 

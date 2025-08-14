@@ -4,6 +4,7 @@ export { BillboardManagementTable } from "./billboard-management-table";
 export { BillboardStats } from "./billboard-stats";
 export { BillboardEditForm } from "./billboard-edit-form";
 export { BillboardDetailView } from "./billboard-detail-view";
+export { BillboardCard } from "./billboard-card";
 export { ImageUpload } from "./image-upload";
 export { LocationInput } from "./location-input";
 export { SpecificationsInput } from "./specifications-input";

@@ -5,6 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +28,6 @@ import {
   Ruler,
   Clock,
   Send,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -30,11 +36,8 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
-  isSameMonth,
-  isToday,
-  isBefore,
 } from "date-fns";
-import { formatZAR, getCurrentSASTTime } from "@/lib/utils";
+import { formatZAR } from "@/lib/utils";
 
 interface BillboardWithDetails {
   id: string;
@@ -52,7 +55,7 @@ interface BillboardWithDetails {
   trafficLevel: "HIGH" | "MEDIUM" | "LOW" | null;
   basePrice: number;
   currency: string;
-  status: "ACTIVE" | "INACTIVE" | "PENDING";
+  status: "ACTIVE" | "INACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED";
   createdAt: Date;
   updatedAt: Date;
   images: Array<{
@@ -78,7 +81,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "OWNER" | "ADVERTISER";
+  role: "OWNER" | "ADVERTISER" | "ADMIN";
 }
 
 interface BillboardDetailViewProps {
@@ -683,292 +686,203 @@ export function BillboardDetailView({
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-3">
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={() => setShowInquiryForm(true)}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Send Inquiry
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setShowAvailabilityCalendar(true)}
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Check Availability
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Availability Calendar Modal */}
-          {showAvailabilityCalendar && (
-            <Card className="fixed inset-0 z-50 bg-white shadow-2xl overflow-auto">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Availability Calendar
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAvailabilityCalendar(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="max-w-md mx-auto">
-                  {/* Calendar Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigateMonth("prev")}
-                    >
-                      ←
-                    </Button>
-                    <h3 className="text-lg font-semibold">
-                      {format(currentMonth, "MMMM yyyy")}
-                    </h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigateMonth("next")}
-                    >
-                      →
-                    </Button>
-                  </div>
-
-                  {/* Calendar Grid */}
-                  <div className="grid grid-cols-7 gap-1 mb-4">
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                      (day) => (
-                        <div
-                          key={day}
-                          className="text-center text-sm font-medium text-gray-500 p-2"
-                        >
-                          {day}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full" size="lg">
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Send Inquiry
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center">
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                          Send Inquiry to {billboard.owner.name}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <form
+                        onSubmit={handleInquirySubmit}
+                        className="space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="subject">Subject</Label>
+                          <Input
+                            id="subject"
+                            value={inquiryForm.subject}
+                            onChange={(e) =>
+                              setInquiryForm((prev) => ({
+                                ...prev,
+                                subject: e.target.value,
+                              }))
+                            }
+                            placeholder="Advertising inquiry for your billboard"
+                            required
+                          />
                         </div>
-                      )
-                    )}
-                    {generateCalendarDays().map((day, index) => {
-                      const isCurrentMonth = isSameMonth(day, currentMonth);
-                      const isPast = isBefore(day, new Date());
-                      const isCurrentDay = isToday(day);
 
-                      return (
-                        <div
-                          key={index}
-                          className={`
-                            text-center p-2 text-sm cursor-pointer rounded
-                            ${!isCurrentMonth ? "text-gray-300" : ""}
-                            ${isPast ? "text-gray-400 cursor-not-allowed" : ""}
-                            ${isCurrentDay ? "bg-blue-100 text-blue-800 font-semibold" : ""}
-                            ${!isPast && isCurrentMonth ? "hover:bg-green-100 hover:text-green-800" : ""}
-                          `}
-                        >
-                          {format(day, "d")}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="startDate">Start Date</Label>
+                            <Input
+                              id="startDate"
+                              type="date"
+                              value={inquiryForm.startDate}
+                              onChange={(e) =>
+                                setInquiryForm((prev) => ({
+                                  ...prev,
+                                  startDate: e.target.value,
+                                }))
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="endDate">End Date</Label>
+                            <Input
+                              id="endDate"
+                              type="date"
+                              value={inquiryForm.endDate}
+                              onChange={(e) =>
+                                setInquiryForm((prev) => ({
+                                  ...prev,
+                                  endDate: e.target.value,
+                                }))
+                              }
+                              required
+                            />
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
 
-                  {/* Legend */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-green-100 rounded"></div>
-                      <span>Available</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-red-100 rounded"></div>
-                      <span>Booked</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-blue-100 rounded"></div>
-                      <span>Today</span>
-                    </div>
-                  </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="message">Message</Label>
+                          <Textarea
+                            id="message"
+                            value={inquiryForm.message}
+                            onChange={(e) =>
+                              setInquiryForm((prev) => ({
+                                ...prev,
+                                message: e.target.value,
+                              }))
+                            }
+                            placeholder="Tell us about your advertising campaign..."
+                            rows={4}
+                            required
+                          />
+                        </div>
 
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      <strong>Operating Hours:</strong> 6:00 AM - 10:00 PM daily
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      <strong>Minimum Booking:</strong> 1 day
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      <strong>Rate:</strong>{" "}
-                      {formatZAR(Number(billboard.basePrice))} per day
-                    </p>
-                  </div>
+                        <div className="flex justify-end space-x-2">
+                          <DialogTrigger asChild>
+                            <Button type="button" variant="outline">
+                              Cancel
+                            </Button>
+                          </DialogTrigger>
+                          <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                Send Inquiry
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Check Availability
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center">
+                          <Calendar className="h-5 w-5 mr-2" />
+                          Availability Calendar
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div>
+                        {/* Calendar Header */}
+                        <div className="flex items-center justify-between mb-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigateMonth("prev")}
+                          >
+                            ←
+                          </Button>
+                          <h3 className="text-lg font-semibold">
+                            {format(currentMonth, "MMMM yyyy")}
+                          </h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigateMonth("next")}
+                          >
+                            →
+                          </Button>
+                        </div>
+
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-1 mb-4">
+                          {[
+                            "Sun",
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri",
+                            "Sat",
+                          ].map((day) => (
+                            <div
+                              key={day}
+                              className="text-center text-sm font-medium text-gray-500 py-2"
+                            >
+                              {day}
+                            </div>
+                          ))}
+                          {Array.from({ length: 35 }, (_, index) => (
+                            <div
+                              key={index}
+                              className="text-center text-sm py-2 cursor-pointer rounded hover:bg-green-100"
+                            >
+                              {index + 1}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Legend */}
+                        <div className="flex items-center justify-center space-x-4 text-sm">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-green-200 rounded mr-1"></div>
+                            Available
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-red-200 rounded mr-1"></div>
+                            Booked
+                          </div>
+                        </div>
+
+                        {/* Booking Info */}
+                        <div className="mt-4 p-3 bg-gray-50 rounded">
+                          <p className="text-sm text-gray-600 mt-1">
+                            <strong>Minimum Booking:</strong> 1 day
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            <strong>Rate:</strong>{" "}
+                            {formatZAR(Number(billboard.basePrice))} per day
+                          </p>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Inquiry Form Modal */}
-          {showInquiryForm && (
-            <Card className="fixed inset-0 z-50 bg-white shadow-2xl overflow-auto">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <MessageSquare className="h-5 w-5 mr-2" />
-                  Send Inquiry to {billboard.owner.name}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowInquiryForm(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <form
-                  onSubmit={handleInquirySubmit}
-                  className="space-y-4 max-w-md mx-auto"
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      value={inquiryForm.subject}
-                      onChange={(e) =>
-                        setInquiryForm((prev) => ({
-                          ...prev,
-                          subject: e.target.value,
-                        }))
-                      }
-                      placeholder="Advertising inquiry for your billboard"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="startDate">Start Date</Label>
-                      <Input
-                        id="startDate"
-                        type="date"
-                        value={inquiryForm.startDate}
-                        onChange={(e) =>
-                          setInquiryForm((prev) => ({
-                            ...prev,
-                            startDate: e.target.value,
-                          }))
-                        }
-                        min={getCurrentSASTTime().toISOString().split("T")[0]}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="endDate">End Date</Label>
-                      <Input
-                        id="endDate"
-                        type="date"
-                        value={inquiryForm.endDate}
-                        onChange={(e) =>
-                          setInquiryForm((prev) => ({
-                            ...prev,
-                            endDate: e.target.value,
-                          }))
-                        }
-                        min={
-                          inquiryForm.startDate ||
-                          getCurrentSASTTime().toISOString().split("T")[0]
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="budget">Budget (ZAR)</Label>
-                    <Input
-                      id="budget"
-                      type="number"
-                      value={inquiryForm.budget}
-                      onChange={(e) =>
-                        setInquiryForm((prev) => ({
-                          ...prev,
-                          budget: e.target.value,
-                        }))
-                      }
-                      placeholder="Your advertising budget"
-                      min="0"
-                      step="100"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      value={inquiryForm.message}
-                      onChange={(e) =>
-                        setInquiryForm((prev) => ({
-                          ...prev,
-                          message: e.target.value,
-                        }))
-                      }
-                      placeholder="Tell the owner about your advertising campaign, requirements, and any questions you have..."
-                      rows={6}
-                      required
-                    />
-                  </div>
-
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">
-                      Billboard Details
-                    </h4>
-                    <div className="text-sm text-blue-800 space-y-1">
-                      <p>
-                        <strong>Location:</strong> {billboard.address},{" "}
-                        {billboard.city}
-                      </p>
-                      <p>
-                        <strong>Size:</strong> {billboard.width} ×{" "}
-                        {billboard.height} pixels
-                      </p>
-                      <p>
-                        <strong>Rate:</strong>{" "}
-                        {formatZAR(Number(billboard.basePrice))} per day
-                      </p>
-                      {billboard.trafficLevel && (
-                        <p>
-                          <strong>Traffic:</strong> {billboard.trafficLevel}{" "}
-                          volume
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setShowInquiryForm(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>Sending...</>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Send Inquiry
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
               </CardContent>
             </Card>
           )}

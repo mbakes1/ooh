@@ -25,6 +25,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ErrorAlert } from "@/components/ui/error-alert";
+import { RealTimeForm } from "@/components/ui/real-time-form";
+import { EnhancedFormField } from "@/components/ui/enhanced-form-field";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
 interface LoginFormProps {
@@ -42,6 +44,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       email: "",
       password: "",
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   const onSubmit = async (data: LoginInput) => {
@@ -79,7 +82,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
+        <RealTimeForm form={form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {error && (
               <ErrorAlert message={error} onDismiss={() => setError(null)} />
@@ -89,17 +92,17 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <EnhancedFormField
+                  label="Email Address"
+                  required
+                  successMessage="Valid email format"
+                >
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    {...field}
+                  />
+                </EnhancedFormField>
               )}
             />
 
@@ -107,17 +110,17 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter your password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <EnhancedFormField
+                  label="Password"
+                  required
+                  successMessage="Password entered"
+                >
+                  <Input
+                    type="password"
+                    placeholder="Enter your password"
+                    {...field}
+                  />
+                </EnhancedFormField>
               )}
             />
 
@@ -146,7 +149,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               </Link>
             </div>
           </form>
-        </Form>
+        </RealTimeForm>
       </CardContent>
     </Card>
   );

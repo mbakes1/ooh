@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ErrorAlert } from "@/components/ui/error-alert";
+import { RealTimeForm } from "@/components/ui/real-time-form";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 export function RegisterForm() {
@@ -52,6 +53,7 @@ export function RegisterForm() {
       password: "",
       confirmPassword: "",
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   const selectedRole = form.watch("role");
@@ -121,7 +123,7 @@ export function RegisterForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
+        <RealTimeForm form={form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {error && (
               <ErrorAlert message={error} onDismiss={() => setError(null)} />
@@ -300,7 +302,7 @@ export function RegisterForm() {
               </Link>
             </div>
           </form>
-        </Form>
+        </RealTimeForm>
       </CardContent>
     </Card>
   );

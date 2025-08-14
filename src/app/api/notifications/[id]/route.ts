@@ -3,13 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { NotificationService } from "@/lib/notifications/service";
 
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -20,6 +20,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const params = await context.params;
     const body = await request.json();
     const { action } = body;
 
@@ -49,7 +50,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -60,6 +61,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const params = await context.params;
     await NotificationService.deleteNotification(params.id, session.user.id);
 
     return NextResponse.json({ success: true });

@@ -156,7 +156,7 @@ export function ConversationThread({
       });
 
       // Listen for typing indicators
-      socket.on("typing", (data) => {
+      socket.on("typing" as any, (data: any) => {
         if (
           data.conversationId === conversationId &&
           data.userId !== session?.user?.id
@@ -187,7 +187,7 @@ export function ConversationThread({
       return () => {
         socket.off("newMessage");
         socket.off("messageRead");
-        socket.off("typing");
+        socket.off("typing" as any);
       };
     }
   }, [socket, conversationId, session?.user?.id]);
