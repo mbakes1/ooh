@@ -30,13 +30,7 @@ import {
   Send,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  format,
-  addDays,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-} from "date-fns";
+import { format } from "date-fns";
 import { formatZAR } from "@/lib/utils";
 
 interface BillboardWithDetails {
@@ -96,9 +90,8 @@ export function BillboardDetailView({
   currentUser,
 }: BillboardDetailViewProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [showInquiryForm, setShowInquiryForm] = useState(false);
-  const [showAvailabilityCalendar, setShowAvailabilityCalendar] =
-    useState(false);
+  const [, setShowInquiryForm] = useState(false);
+  // const [, setShowAvailabilityCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [inquiryForm, setInquiryForm] = useState({
     subject: "",
@@ -192,27 +185,27 @@ export function BillboardDetailView({
     }
   };
 
-  const generateCalendarDays = () => {
-    const start = startOfMonth(currentMonth);
-    const end = endOfMonth(currentMonth);
-    const days = eachDayOfInterval({ start, end });
+  // const generateCalendarDays = () => {
+  //   const start = startOfMonth(currentMonth);
+  //   const end = endOfMonth(currentMonth);
+  //   const days = eachDayOfInterval({ start, end });
 
-    // Add days from previous month to fill the first week
-    const startDay = start.getDay();
-    const prevMonthDays = [];
-    for (let i = startDay - 1; i >= 0; i--) {
-      prevMonthDays.push(addDays(start, -i - 1));
-    }
+  //   // Add days from previous month to fill the first week
+  //   const startDay = start.getDay();
+  //   const prevMonthDays = [];
+  //   for (let i = startDay - 1; i >= 0; i--) {
+  //     prevMonthDays.push(addDays(start, -i - 1));
+  //   }
 
-    // Add days from next month to fill the last week
-    const endDay = end.getDay();
-    const nextMonthDays = [];
-    for (let i = 1; i <= 6 - endDay; i++) {
-      nextMonthDays.push(addDays(end, i));
-    }
+  //   // Add days from next month to fill the last week
+  //   const endDay = end.getDay();
+  //   const nextMonthDays = [];
+  //   for (let i = 1; i <= 6 - endDay; i++) {
+  //     nextMonthDays.push(addDays(end, i));
+  //   }
 
-    return [...prevMonthDays, ...days, ...nextMonthDays];
-  };
+  //   return [...prevMonthDays, ...days, ...nextMonthDays];
+  // };
 
   const navigateMonth = (direction: "prev" | "next") => {
     setCurrentMonth((prev) => {

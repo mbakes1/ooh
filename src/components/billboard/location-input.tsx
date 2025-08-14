@@ -7,13 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Select components removed - using Combobox instead
 import { southAfricanProvinces } from "@/lib/validations/billboard";
 import { cn, southAfricanTerminology } from "@/lib/utils";
 import {
@@ -59,7 +53,7 @@ export function LocationInput({
   const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
-  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  // const [, setShowCitySuggestions] = useState(false);
 
   // Update city suggestions when province changes
   useEffect(() => {
@@ -114,27 +108,27 @@ export function LocationInput({
     setShowAddressSuggestions(suggestions.length > 0);
   };
 
-  const handleCitySearch = (value: string) => {
-    onCityChange(value);
-    if (value.length > 0 && citySuggestions.length > 0) {
-      const filtered = citySuggestions.filter((cityName) =>
-        cityName.toLowerCase().includes(value.toLowerCase())
-      );
-      setShowCitySuggestions(filtered.length > 0);
-    } else {
-      setShowCitySuggestions(false);
-    }
-  };
+  // const handleCitySearch = (value: string) => {
+  //   onCityChange(value);
+  //   if (value.length > 0 && citySuggestions.length > 0) {
+  //     const filtered = citySuggestions.filter((cityName) =>
+  //       cityName.toLowerCase().includes(value.toLowerCase())
+  //     );
+  //     setShowCitySuggestions(filtered.length > 0);
+  //   } else {
+  //     setShowCitySuggestions(false);
+  //   }
+  // };
 
   const selectAddressSuggestion = (suggestion: string) => {
     onAddressChange(suggestion);
     setShowAddressSuggestions(false);
   };
 
-  const selectCitySuggestion = (cityName: string) => {
-    onCityChange(cityName);
-    setShowCitySuggestions(false);
-  };
+  // const selectCitySuggestion = (cityName: string) => {
+  //   onCityChange(cityName);
+  //   setShowCitySuggestions(false);
+  // };
 
   return (
     <div className={cn("space-y-4", className)}>

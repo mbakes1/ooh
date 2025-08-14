@@ -78,7 +78,7 @@ export function PasswordResetRequestForm() {
             Check Your Email
           </CardTitle>
           <CardDescription className="text-center">
-            We've sent a password reset link to your email address
+            We&apos;ve sent a password reset link to your email address
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,7 +103,7 @@ export function PasswordResetRequestForm() {
           Reset Password
         </CardTitle>
         <CardDescription className="text-center">
-          Enter your email address and we'll send you a reset link
+          Enter your email address and we&apos;ll send you a reset link
         </CardDescription>
       </CardHeader>
       <CardContent>

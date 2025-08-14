@@ -20,7 +20,6 @@ import {
   DollarSign,
   MapPin,
   Activity,
-  Calendar,
   BarChart3,
   PieChart,
   Download,
@@ -429,7 +428,7 @@ export function AdvancedAnalytics({
                 <div className="space-y-2">
                   {data.billboardPerformance.topPerformingBillboards
                     .slice(0, 3)
-                    .map((billboard, index) => (
+                    .map((billboard) => (
                       <div
                         key={billboard.id}
                         className="flex items-center justify-between text-sm"

@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn, getCurrentSASTTime, formatSASTDate } from "@/lib/utils";
+import { cn, formatSASTDate } from "@/lib/utils";
 
 interface AvailabilityCalendarProps {
   className?: string;
@@ -34,7 +34,7 @@ export function AvailabilityCalendar({ className }: AvailabilityCalendarProps) {
   const [is24Hours, setIs24Hours] = useState(false);
 
   // Get today's date in YYYY-MM-DD format using SAST
-  const today = getCurrentSASTTime().toISOString().split("T")[0];
+  // const today = getCurrentSASTTime().toISOString().split("T")[0];
 
   const handleOperatingHoursChange = (
     field: "start" | "end",

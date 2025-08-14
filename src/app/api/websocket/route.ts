@@ -1,5 +1,4 @@
-import { NextRequest } from "next/server";
-import { Server as SocketIOServer } from "socket.io";
+// WebSocket endpoint placeholder
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 
@@ -7,7 +6,7 @@ import { authOptions } from "@/lib/auth/config";
 // In a production environment, you would typically use a separate WebSocket server
 // or integrate with a service like Pusher, Ably, or Socket.io
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return new Response("WebSocket endpoint - use Socket.io client to connect", {
     status: 200,
     headers: {
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
 }
 
 // For development, we'll use polling instead of WebSockets
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
 

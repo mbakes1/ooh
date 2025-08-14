@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,6 @@ import {
   MessageCircle,
   AlertCircle,
   CheckCircle,
-  Clock,
   User,
   Building,
   Activity,
@@ -29,7 +28,7 @@ interface ActivityItem {
     name: string;
     avatarUrl?: string;
   };
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 interface ActivityFeedProps {
@@ -43,11 +42,58 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchActivities = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/activities");
+      if (!response.ok) {
+        throw new Error("Failed to fetch activities");
+      }
+      const data = await response.json();
+
+      // Fetch recent notifications as activities
+      const notificationsResponse = await fetch("/api/notifications?limit=10");
+      if (notificationsResponse.ok) {
+        const notificationsData = await notificationsResponse.json();
+        const notificationActivities: ActivityItem[] =
+          notificationsData.notifications.map(
+            (notification: Record<string, unknown>) => ({
+              id: `notification-${notification.id}`,
+              type: notification.type.toLowerCase(),
+              title: notification.title,
+              description: notification.message,
+              timestamp: notification.createdAt,
+              data: notification.data,
+            })
+          );
+
+        // Combine and sort activities
+        const allActivities = [
+          ...(data.activities || []),
+          ...notificationActivities,
+        ];
+        allActivities.sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+
+        setActivities(allActivities.slice(0, 20)); // Limit to 20 most recent
+      } else {
+        setActivities(data.activities || []);
+      }
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      setActivities([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (session?.user?.id) {
       fetchActivities();
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, fetchActivities]);
 
   useEffect(() => {
     if (socket) {
@@ -104,7 +150,7 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
         socket.off("notification");
       };
     }
-  }, [socket, session?.user?.id]);
+  }, [socket, session?.user?.id, addActivity]);
 
   const fetchActivities = async () => {
     try {
@@ -117,14 +163,16 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
       if (notificationsResponse.ok) {
         const notificationsData = await notificationsResponse.json();
         const notificationActivities: ActivityItem[] =
-          notificationsData.notifications.map((notification: any) => ({
-            id: `notification-${notification.id}`,
-            type: notification.type.toLowerCase(),
-            title: notification.title,
-            description: notification.message,
-            timestamp: notification.createdAt,
-            data: notification.data,
-          }));
+          notificationsData.notifications.map(
+            (notification: Record<string, unknown>) => ({
+              id: `notification-${notification.id}`,
+              type: notification.type.toLowerCase(),
+              title: notification.title,
+              description: notification.message,
+              timestamp: notification.createdAt,
+              data: notification.data,
+            })
+          );
 
         setActivities(notificationActivities);
       }

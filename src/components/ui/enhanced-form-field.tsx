@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   FormControl,
@@ -104,7 +104,6 @@ interface FormFieldWithDependencyProps extends EnhancedFormFieldProps {
 }
 
 export function FormFieldWithDependency({
-  dependsOn,
   dependencyValue,
   dependencyCondition,
   dependencyAction,

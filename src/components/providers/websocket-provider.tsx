@@ -9,12 +9,7 @@ import {
 } from "react";
 import { useSession } from "next-auth/react";
 import { Socket } from "socket.io-client";
-import {
-  initializeWebSocketClient,
-  connectWebSocket,
-  disconnectWebSocket,
-  getWebSocketClient,
-} from "@/lib/websocket/client";
+// WebSocket client imports removed - using placeholder implementation
 import {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -61,16 +56,16 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       // Create a mock socket object for compatibility
       const mockSocket = {
-        on: (event: string, callback: Function) => {
+        on: () => {
           // Store event listeners for future use
         },
-        off: (event: string) => {
+        off: () => {
           // Remove event listeners
         },
-        emit: (event: string, data: any) => {
+        emit: () => {
           // Handle emit events
         },
-      } as any;
+      } as Socket<ServerToClientEvents, ClientToServerEvents>;
 
       setSocket(mockSocket);
 

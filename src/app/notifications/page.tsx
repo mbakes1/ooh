@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -32,7 +32,7 @@ interface Notification {
   type: "MESSAGE" | "INQUIRY" | "STATUS_CHANGE" | "SYSTEM";
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
   read: boolean;
   readAt: string | null;
   createdAt: string;
@@ -45,12 +45,6 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchNotifications();
-    }
-  }, [session?.user?.id, filter]);
 
   const fetchNotifications = async (pageNum = 1) => {
     try {
@@ -80,6 +74,12 @@ export default function NotificationsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchNotifications();
+    }
+  }, [session?.user?.id, filter]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -312,11 +312,16 @@ export default function NotificationsPage() {
                                 {notification.message}
                               </p>
 
-                              {notification.data?.billboardTitle && (
-                                <p className="text-xs text-muted-foreground">
-                                  Billboard: {notification.data.billboardTitle}
-                                </p>
-                              )}
+                              {(() => {
+                                const data = notification.data as {
+                                  billboardTitle?: string;
+                                } | null;
+                                return data?.billboardTitle ? (
+                                  <p className="text-xs text-muted-foreground">
+                                    Billboard: {data.billboardTitle}
+                                  </p>
+                                ) : null;
+                              })()}
 
                               {!notification.read && (
                                 <Button

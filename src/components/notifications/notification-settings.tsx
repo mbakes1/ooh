@@ -163,8 +163,8 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">Push notifications not supported</p>
                 <p>
-                  Your browser doesn't support push notifications. You'll still
-                  receive email notifications.
+                  Your browser doesn&apos;t support push notifications.
+                  You&apos;ll still receive email notifications.
                 </p>
               </div>
             </div>
@@ -176,9 +176,9 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
               <div className="text-sm text-red-800">
                 <p className="font-medium">Push notifications blocked</p>
                 <p>
-                  You've blocked notifications for this site. To enable them,
-                  click the lock icon in your browser's address bar and allow
-                  notifications.
+                  You&apos;ve blocked notifications for this site. To enable
+                  them, click the lock icon in your browser&apos;s address bar
+                  and allow notifications.
                 </p>
               </div>
             </div>

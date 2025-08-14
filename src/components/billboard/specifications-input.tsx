@@ -5,13 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Select components removed - using Combobox instead
 import { commonResolutions } from "@/lib/validations/billboard";
 import { TrafficLevel } from "@prisma/client";
 import { cn } from "@/lib/utils";

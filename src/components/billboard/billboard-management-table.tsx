@@ -82,7 +82,7 @@ export function BillboardManagementTable({
   onRefresh,
   currentStatusFilter,
 }: BillboardManagementTableProps) {
-  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const [, setBulkActionLoading] = useState(false);
 
   const { confirm: confirmDelete, ConfirmDialog: DeleteConfirmDialog } =
     useConfirmDialog({

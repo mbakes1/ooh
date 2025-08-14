@@ -135,8 +135,7 @@ export function BillboardModeration({
     {
       id: "images",
       header: "Images",
-      cell: ({ row }) => {
-        const billboard = row.original;
+      cell: () => {
         return <span className="text-sm">No image data</span>;
       },
     },
