@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 

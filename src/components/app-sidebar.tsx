@@ -6,7 +6,6 @@ import {
   Building2,
   MessageSquare,
   Settings,
-  Home,
   Search,
   Shield,
   Plus,

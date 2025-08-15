@@ -197,7 +197,7 @@ export function BillboardListingFormMinimal({
                         </FormControl>
                         <FormDescription>
                           Create a descriptive title that highlights your
-                          billboard's location
+                          billboard&apos;s location
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
