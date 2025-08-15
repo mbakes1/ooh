@@ -14,7 +14,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
@@ -25,7 +24,6 @@ import {
   Calendar,
   BarChart3,
   DollarSign,
-  Users,
   Building2,
 } from "lucide-react";
 import {
@@ -41,7 +39,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
 
@@ -103,7 +100,6 @@ export function BillboardDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -138,7 +134,6 @@ export function BillboardDashboard() {
 
   const fetchAnalytics = async () => {
     try {
-      setAnalyticsLoading(true);
       // Mock analytics data for now - in real app this would come from API
       const mockAnalytics: DashboardAnalytics = {
         totalViews: 12450,
@@ -172,8 +167,6 @@ export function BillboardDashboard() {
       setAnalytics(mockAnalytics);
     } catch (err) {
       console.error("Error fetching analytics:", err);
-    } finally {
-      setAnalyticsLoading(false);
     }
   };
 

@@ -41,7 +41,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer,
   PieChart as RechartsPieChart,
   Pie,
   Cell,

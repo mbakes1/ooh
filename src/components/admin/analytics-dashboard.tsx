@@ -18,7 +18,6 @@ import {
   TrendingUp,
   DollarSign,
   MapPin,
-  Activity,
   BarChart3,
   LineChart,
 } from "lucide-react";
@@ -37,16 +36,10 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
 } from "recharts";
-import {
-  MetricWidget,
-  ListWidget,
-  ChartWidget,
-} from "@/components/dashboard/dashboard-widgets";
 
 interface AnalyticsData {
   totalUsers: number;

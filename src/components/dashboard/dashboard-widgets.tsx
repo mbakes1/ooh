@@ -54,7 +54,6 @@ export function MetricWidget({
   title,
   description,
   value,
-  previousValue,
   trend,
   trendValue,
   icon,

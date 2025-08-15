@@ -1,7 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart3, MessageSquare, TrendingUp, DollarSign } from "lucide-react";
 import {
@@ -78,36 +77,6 @@ export function BillboardStats({
           billboards.length
         : 0,
   };
-
-  const statCards = [
-    {
-      title: "Total Listings",
-      value: stats.total,
-      icon: BarChart3,
-      description: "All your billboard listings",
-    },
-    {
-      title: "Active Listings",
-      value: stats.active,
-      icon: TrendingUp,
-      description: "Currently visible to advertisers",
-      color: "text-green-600",
-    },
-    {
-      title: "Total Inquiries",
-      value: stats.totalInquiries,
-      icon: MessageSquare,
-      description: "Messages from potential advertisers",
-      color: "text-blue-600",
-    },
-    {
-      title: "Average Price",
-      value: `R${stats.averagePrice.toFixed(0)}`,
-      icon: DollarSign,
-      description: "Average listing price",
-      color: "text-purple-600",
-    },
-  ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
