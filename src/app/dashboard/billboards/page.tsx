@@ -5,10 +5,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { UserRole } from "@prisma/client";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-import { BillboardManagementTable } from "@/components/billboard/billboard-management-table";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import Link from "next/link";
+import { BillboardManagementTableMinimal } from "@/components/billboard/billboard-management-table-minimal";
 
 interface BillboardWithAnalytics {
   id: string;
@@ -105,37 +102,20 @@ export default function BillboardsPage() {
       title="My Billboards"
       description="Manage and monitor your billboard listings"
     >
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">Billboard Listings</h2>
-            <p className="text-muted-foreground">
-              View and manage all your billboard listings
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/billboards/create">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Billboard
-            </Link>
-          </Button>
-        </div>
-
-        <BillboardManagementTable
-          billboards={billboards}
-          pagination={{
-            page: currentPage,
-            limit: 10,
-            total: billboards.length,
-            pages: Math.ceil(billboards.length / 10),
-            hasMore: currentPage < Math.ceil(billboards.length / 10),
-          }}
-          onPageChange={handlePageChange}
-          onStatusFilterChange={handleStatusFilterChange}
-          onRefresh={fetchBillboards}
-          currentStatusFilter={statusFilter}
-        />
-      </div>
+      <BillboardManagementTableMinimal
+        billboards={billboards}
+        pagination={{
+          page: currentPage,
+          limit: 10,
+          total: billboards.length,
+          pages: Math.ceil(billboards.length / 10),
+          hasMore: currentPage < Math.ceil(billboards.length / 10),
+        }}
+        onPageChange={handlePageChange}
+        onStatusFilterChange={handleStatusFilterChange}
+        onRefresh={fetchBillboards}
+        currentStatusFilter={statusFilter}
+      />
     </DashboardLayout>
   );
 }

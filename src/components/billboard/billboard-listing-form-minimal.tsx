@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { ImageUpload } from "./image-upload";
 import { LocationInput } from "./location-input";
-import { SpecificationsInput } from "./specifications-input";
+import { SpecificationsInputSimple } from "./specifications-input-simple";
 import { PricingInput } from "./pricing-input";
 import { RealTimeForm } from "@/components/ui/real-time-form";
 import {
@@ -153,7 +153,7 @@ export function BillboardListingFormMinimal({
   const isFirstStep = currentStepIndex === 0;
 
   return (
-    <div className={cn("max-w-4xl mx-auto space-y-8", className)}>
+    <div className={cn("max-w-4xl mx-auto space-y-8 pb-8", className)}>
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">
           {isEditing ? "Edit Billboard Listing" : "Create Billboard Listing"}
@@ -164,13 +164,15 @@ export function BillboardListingFormMinimal({
         </p>
       </div>
 
-      <Stepper
-        steps={steps}
-        currentStep={currentStep}
-        completedSteps={completedSteps}
-        onStepClick={goToStep}
-        className="mb-8"
-      />
+      {/* Sticky Stepper */}
+      <div className="sticky top-4 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-4 mb-8">
+        <Stepper
+          steps={steps}
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          onStepClick={goToStep}
+        />
+      </div>
 
       <RealTimeForm form={form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -180,7 +182,7 @@ export function BillboardListingFormMinimal({
                 {steps.find((s) => s.id === currentStep)?.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 min-h-[400px]">
               {currentStep === "basic" && (
                 <>
                   <FormField
@@ -244,7 +246,7 @@ export function BillboardListingFormMinimal({
               )}
 
               {currentStep === "specs" && (
-                <SpecificationsInput
+                <SpecificationsInputSimple
                   width={form.watch("width")}
                   height={form.watch("height")}
                   resolution={form.watch("resolution")}
@@ -307,37 +309,40 @@ export function BillboardListingFormMinimal({
             </CardContent>
           </Card>
 
-          <div className="flex justify-between items-center mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={goToPreviousStep}
-              disabled={isFirstStep}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-
-            <div className="text-sm text-muted-foreground">
-              Step {currentStepIndex + 1} of {steps.length}
-            </div>
-
-            {isLastStep ? (
+          {/* Sticky Navigation */}
+          <div className="sticky bottom-4 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-4 mt-8">
+            <div className="flex justify-between items-center">
               <Button
-                type="submit"
-                disabled={isSubmitting || completedSteps.size < steps.length}
+                type="button"
+                variant="outline"
+                onClick={goToPreviousStep}
+                disabled={isFirstStep}
               >
-                {isSubmitting && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
-                {isEditing ? "Update Listing" : "Create Listing"}
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
               </Button>
-            ) : (
-              <Button type="button" onClick={goToNextStep}>
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            )}
+
+              <div className="text-sm text-muted-foreground">
+                Step {currentStepIndex + 1} of {steps.length}
+              </div>
+
+              {isLastStep ? (
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || completedSteps.size < steps.length}
+                >
+                  {isSubmitting && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  {isEditing ? "Update Listing" : "Create Listing"}
+                </Button>
+              ) : (
+                <Button type="button" onClick={goToNextStep}>
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </RealTimeForm>
