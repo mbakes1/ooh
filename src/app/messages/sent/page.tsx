@@ -42,7 +42,7 @@ export default async function SentMessagesPage() {
                 To: John Smith
               </p>
               <p className="text-sm">
-                Hi, I'm interested in your billboard location...
+                Hi, I&apos;m interested in your billboard location...
               </p>
             </div>
             <div className="border rounded-lg p-4">
@@ -54,7 +54,7 @@ export default async function SentMessagesPage() {
                 To: Sarah Johnson
               </p>
               <p className="text-sm">
-                Thank you for your response. I'd like to discuss...
+                Thank you for your response. I&apos;d like to discuss...
               </p>
             </div>
           </div>

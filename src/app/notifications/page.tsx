@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,40 +46,43 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const fetchNotifications = async (pageNum = 1) => {
-    try {
-      setLoading(pageNum === 1);
-      const unreadOnly = filter === "unread";
-      const response = await fetch(
-        `/api/notifications?page=${pageNum}&limit=20${unreadOnly ? "&unreadOnly=true" : ""}`
-      );
+  const fetchNotifications = useCallback(
+    async (pageNum = 1) => {
+      try {
+        setLoading(pageNum === 1);
+        const unreadOnly = filter === "unread";
+        const response = await fetch(
+          `/api/notifications?page=${pageNum}&limit=20${unreadOnly ? "&unreadOnly=true" : ""}`
+        );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
+        if (!response.ok) {
+          throw new Error("Failed to fetch notifications");
+        }
+
+        const data = await response.json();
+
+        if (pageNum === 1) {
+          setNotifications(data.notifications || []);
+        } else {
+          setNotifications((prev) => [...prev, ...(data.notifications || [])]);
+        }
+
+        setHasMore(data.pagination.page < data.pagination.pages);
+        setPage(pageNum);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-
-      if (pageNum === 1) {
-        setNotifications(data.notifications || []);
-      } else {
-        setNotifications((prev) => [...prev, ...(data.notifications || [])]);
-      }
-
-      setHasMore(data.pagination.page < data.pagination.pages);
-      setPage(pageNum);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [filter]
+  );
 
   useEffect(() => {
     if (session?.user?.id) {
       fetchNotifications();
     }
-  }, [session?.user?.id, filter]);
+  }, [session?.user?.id, filter, fetchNotifications]);
 
   const markAsRead = async (notificationId: string) => {
     try {

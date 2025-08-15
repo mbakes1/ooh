@@ -20,7 +20,7 @@ export default function AdminReportsPage() {
     type: string;
     format: string;
     dateRange: { start: string; end: string };
-    filters: Record<string, any>;
+    filters: Record<string, unknown>;
   }) => {
     try {
       const response = await fetch(`/api/admin/export/${config.type}`, {

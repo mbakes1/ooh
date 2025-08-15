@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { UserRole } from "@prisma/client";
@@ -38,19 +38,7 @@ export default function BillboardsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/auth/login");
-    }
-    if (status === "authenticated" && session?.user?.role !== UserRole.OWNER) {
-      redirect("/");
-    }
-    if (status === "authenticated") {
-      fetchBillboards();
-    }
-  }, [status, session, currentPage, statusFilter]);
-
-  const fetchBillboards = async () => {
+  const fetchBillboards = useCallback(async () => {
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -68,7 +56,19 @@ export default function BillboardsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, statusFilter]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      redirect("/auth/login");
+    }
+    if (status === "authenticated" && session?.user?.role !== UserRole.OWNER) {
+      redirect("/");
+    }
+    if (status === "authenticated") {
+      fetchBillboards();
+    }
+  }, [status, session, fetchBillboards]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -77,21 +77,6 @@ export default function BillboardsPage() {
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status);
     setCurrentPage(1);
-  };
-
-  const handleBulkAction = async (action: string, billboardIds: string[]) => {
-    try {
-      const response = await fetch("/api/billboards/bulk-actions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, billboardIds }),
-      });
-      if (response.ok) {
-        fetchBillboards();
-      }
-    } catch (error) {
-      console.error("Failed to perform bulk action:", error);
-    }
   };
 
   if (status === "loading" || loading) {
