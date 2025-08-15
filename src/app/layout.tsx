@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/session-provider";
-import { Header, Footer } from "@/components/navigation";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { WebSocketProvider } from "@/components/providers/websocket-provider";
 
@@ -24,11 +23,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <AuthProvider>
           <WebSocketProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <div className="min-h-screen">{children}</div>
             <ToastProvider />
           </WebSocketProvider>
         </AuthProvider>

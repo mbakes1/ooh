@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { ProfileCompletion } from "@/components/profile/profile-completion";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { type ProfileUpdateInput } from "@/lib/validations/auth";
 
 interface User {
@@ -128,47 +129,39 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Profile Settings
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Manage your account information and preferences
-            </p>
+    <DashboardLayout
+      breadcrumbs={[{ label: "Profile" }]}
+      title="Profile Settings"
+      description="Manage your account information and preferences"
+    >
+      <div className="max-w-4xl">
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            {successMessage}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Profile Form - Takes up 2 columns */}
+          <div className="lg:col-span-2">
+            <ProfileForm user={user} onUpdate={handleProfileUpdate} />
           </div>
 
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-              {successMessage}
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Profile Form - Takes up 2 columns */}
-            <div className="lg:col-span-2">
-              <ProfileForm user={user} onUpdate={handleProfileUpdate} />
-            </div>
-
-            {/* Profile Completion - Takes up 1 column */}
-            <div className="lg:col-span-1">
-              <ProfileCompletion user={user} />
-            </div>
+          {/* Profile Completion - Takes up 1 column */}
+          <div className="lg:col-span-1">
+            <ProfileCompletion user={user} />
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

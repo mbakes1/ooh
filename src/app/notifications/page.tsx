@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NotificationSettings } from "@/components/notifications/notification-settings";
-import { PageLayout } from "@/components/navigation/page-layout";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { formatDistanceToNow } from "date-fns";
 import {
   Bell,
@@ -196,16 +196,14 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <PageLayout className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="space-y-6">
+    <DashboardLayout
+      breadcrumbs={[{ label: "Notifications" }]}
+      title="Notifications"
+      description="Stay updated with your billboard marketplace activity"
+    >
+      <div className="space-y-6 max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground">
-              Stay updated with your billboard marketplace activity
-            </p>
-          </div>
           {unreadCount > 0 && (
             <Button onClick={markAllAsRead} variant="outline">
               <CheckCheck className="h-4 w-4 mr-2" />
@@ -368,6 +366,6 @@ export default function NotificationsPage() {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </DashboardLayout>
   );
 }

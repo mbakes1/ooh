@@ -16,7 +16,7 @@ import {
   SearchHistory,
   SearchHistoryItem,
 } from "@/components/search/search-history";
-import { PageLayout } from "@/components/navigation/page-layout";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { BillboardWithDetails, TrafficLevel } from "@/types";
 
 interface SearchResponse {
@@ -247,16 +247,12 @@ function SearchPageContent() {
   }, [results, searchQuery, filters]);
 
   return (
-    <PageLayout className="container mx-auto px-4 py-8">
+    <DashboardLayout
+      breadcrumbs={[{ label: "Find Billboards" }]}
+      title="Search Billboards"
+      description="Find the perfect digital billboard for your advertising campaign"
+    >
       <div className="space-y-6">
-        {/* Page Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Search Billboards</h1>
-          <p className="text-muted-foreground">
-            Find the perfect digital billboard for your advertising campaign
-          </p>
-        </div>
-
         {/* Search Bar and View Controls */}
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
           <SearchBar
@@ -366,7 +362,7 @@ function SearchPageContent() {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </DashboardLayout>
   );
 }
 export default function SearchPage() {

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/config";
 import { MessageCenter } from "@/components/messaging";
-import { PageLayout } from "@/components/navigation/page-layout";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 
 export const metadata: Metadata = {
   title: "Messages | Digital Billboard Marketplace",
@@ -19,8 +19,12 @@ export default async function MessagesPage() {
   }
 
   return (
-    <PageLayout>
+    <DashboardLayout
+      breadcrumbs={[{ label: "Messages" }]}
+      title="Messages"
+      description="Manage your conversations with billboard owners and advertisers"
+    >
       <MessageCenter />
-    </PageLayout>
+    </DashboardLayout>
   );
 }
