@@ -86,8 +86,8 @@ export function BillboardEditForm({ billboard }: BillboardEditFormProps) {
         throw new Error(errorData.error || "Failed to update billboard");
       }
 
-      // Redirect to dashboard on success
-      router.push("/dashboard");
+      // Redirect to billboard listings on success
+      router.push("/dashboard/billboards");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -98,10 +98,10 @@ export function BillboardEditForm({ billboard }: BillboardEditFormProps) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <Link href="/dashboard">
+        <Link href="/dashboard/billboards">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Back to Billboards
           </Button>
         </Link>
       </div>
@@ -388,7 +388,7 @@ export function BillboardEditForm({ billboard }: BillboardEditFormProps) {
 
           {/* Submit Button */}
           <div className="flex justify-end space-x-4">
-            <Link href="/dashboard">
+            <Link href="/dashboard/billboards">
               <Button type="button" variant="outline">
                 Cancel
               </Button>

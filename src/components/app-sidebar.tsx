@@ -65,34 +65,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ],
       },
       {
-        title: "Account",
+        title: "Profile",
         url: "/profile",
         icon: Settings,
-        items: [
-          {
-            title: "Profile",
-            url: "/profile",
-          },
-          {
-            title: "Settings",
-            url: "/profile/settings",
-          },
-        ],
+        items: [],
       },
     ];
 
     const ownerItems = [
       {
-        title: "Dashboard",
-        url: "/dashboard",
-        icon: Home,
-        isActive: true,
-        items: [],
-      },
-      {
         title: "My Billboards",
         url: "/dashboard/billboards",
         icon: Building2,
+        isActive: true,
         items: [
           {
             title: "All Listings",
@@ -103,6 +88,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/billboards/create",
           },
         ],
+      },
+    ];
+
+    const advertiserItems = [
+      {
+        title: "Find Billboards",
+        url: "/search",
+        icon: Search,
+        isActive: true,
+        items: [],
       },
     ];
 
@@ -132,6 +127,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     if (session?.user?.role === "OWNER") {
       items = [...ownerItems, ...items];
+    } else if (session?.user?.role === "ADVERTISER") {
+      items = [...advertiserItems, ...items];
     }
 
     if (session?.user?.role === "ADMIN") {

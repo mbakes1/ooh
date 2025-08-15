@@ -223,7 +223,7 @@ export function BillboardDetailView({
     <div className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <Link href={isOwner ? "/dashboard" : "/search"}>
+        <Link href={isOwner ? "/dashboard/billboards" : "/search"}>
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             {isOwner ? "Back to Dashboard" : "Back to Search"}

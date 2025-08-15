@@ -52,3 +52,6 @@ export {
 
 // Dialog components
 export { ConfirmDialog, useConfirmDialog } from "./confirm-dialog";
+
+// Navigation components
+export { Stepper } from "./stepper";

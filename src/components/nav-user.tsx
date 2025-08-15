@@ -96,12 +96,7 @@ export function NavUser({
                   Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile/settings">
-                  <Settings />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
+
               <DropdownMenuItem asChild>
                 <Link href="/notifications">
                   <Bell />

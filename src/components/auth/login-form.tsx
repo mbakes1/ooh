@@ -54,7 +54,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       if (result?.error) {
         setError("Invalid email or password. Please try again.");
       } else {
-        router.push(callbackUrl || "/dashboard");
+        router.push(callbackUrl || "/");
         router.refresh();
       }
     } catch {

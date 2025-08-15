@@ -1,4 +1,5 @@
 export { BillboardListingForm } from "./billboard-listing-form";
+export { BillboardListingFormMinimal } from "./billboard-listing-form-minimal";
 export { BillboardDashboard } from "./billboard-dashboard";
 export { BillboardManagementTable } from "./billboard-management-table";
 export { BillboardStats } from "./billboard-stats";

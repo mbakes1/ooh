@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { BillboardListingForm } from "@/components/billboard/billboard-listing-form";
+import { BillboardListingFormMinimal } from "@/components/billboard/billboard-listing-form-minimal";
 import { type BillboardListingInput } from "@/lib/validations/billboard";
 
 export function CreateBillboardClient() {
@@ -43,5 +43,7 @@ export function CreateBillboardClient() {
     }
   };
 
-  return <BillboardListingForm onSubmit={handleSubmit} isEditing={false} />;
+  return (
+    <BillboardListingFormMinimal onSubmit={handleSubmit} isEditing={false} />
+  );
 }

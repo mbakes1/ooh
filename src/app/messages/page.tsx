@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/config";
-import { MessageCenter } from "@/components/messaging";
+import { MessageCenterRefined } from "@/components/messaging";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default async function MessagesPage() {
       title="Messages"
       description="Manage your conversations with billboard owners and advertisers"
     >
-      <MessageCenter />
+      <MessageCenterRefined />
     </DashboardLayout>
   );
 }
