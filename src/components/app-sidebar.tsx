@@ -50,22 +50,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const getNavigationItems = () => {
     const commonItems = [
       {
-        title: "Dashboard",
-        url: "/dashboard",
-        icon: Home,
-        isActive: true,
-        items: [
-          {
-            title: "Overview",
-            url: "/dashboard",
-          },
-          {
-            title: "Analytics",
-            url: "/dashboard/analytics",
-          },
-        ],
-      },
-      {
         title: "Messages",
         url: "/messages",
         icon: MessageSquare,
@@ -90,10 +74,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/profile",
           },
           {
-            title: "Notifications",
-            url: "/notifications",
-          },
-          {
             title: "Settings",
             url: "/profile/settings",
           },
@@ -102,6 +82,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ];
 
     const ownerItems = [
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: Home,
+        isActive: true,
+        items: [],
+      },
       {
         title: "My Billboards",
         url: "/dashboard/billboards",
@@ -114,10 +101,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Create New",
             url: "/billboards/create",
-          },
-          {
-            title: "Performance",
-            url: "/dashboard/analytics",
           },
         ],
       },
@@ -140,10 +123,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {
             title: "Billboards",
             url: "/admin/billboards",
-          },
-          {
-            title: "Reports",
-            url: "/admin/reports",
           },
         ],
       },

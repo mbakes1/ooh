@@ -2,47 +2,22 @@
 
 import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserManagement } from "./user-management";
 import { BillboardModeration } from "./billboard-moderation";
-import { AnalyticsDashboard } from "./analytics-dashboard";
-import { AdvancedAnalytics } from "./advanced-analytics";
-import { AdminReports } from "./admin-reports";
 import { User, Billboard } from "@/types";
 import { toast } from "sonner";
+import { Users, Building2, MessageSquare } from "lucide-react";
 
 export function AdminDashboard() {
   const [users, setUsers] = React.useState<User[]>([]);
   const [billboards, setBillboards] = React.useState<Billboard[]>([]);
-  const [analyticsData, setAnalyticsData] = React.useState<{
-    totalUsers: number;
-    totalBillboards: number;
-    totalMessages: number;
-    totalRevenue: number;
-    newUsersThisMonth: number;
-    newBillboardsThisMonth: number;
-    messagesThisMonth: number;
-    revenueThisMonth: number;
-    userGrowthRate: number;
-    billboardGrowthRate: number;
-    messageGrowthRate: number;
-    revenueGrowthRate: number;
-    topProvinces: Array<{ name: string; count: number; percentage: number }>;
-    topCities: Array<{ name: string; count: number; percentage: number }>;
-    monthlyStats: Array<{
-      month: string;
-      users: number;
-      billboards: number;
-      messages: number;
-      revenue: number;
-    }>;
-  } | null>(null);
+  const [stats, setStats] = React.useState({
+    totalUsers: 0,
+    totalBillboards: 0,
+    pendingBillboards: 0,
+    activeUsers: 0,
+  });
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -57,22 +32,30 @@ export function AdminDashboard() {
       const usersResponse = await fetch("/api/admin/users");
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
-        setUsers(usersData);
+        setUsers(usersData.users || []);
       }
 
       // Fetch billboards
       const billboardsResponse = await fetch("/api/admin/billboards");
       if (billboardsResponse.ok) {
         const billboardsData = await billboardsResponse.json();
-        setBillboards(billboardsData);
+        setBillboards(billboardsData.billboards || []);
       }
 
-      // Fetch analytics
-      const analyticsResponse = await fetch("/api/admin/analytics");
-      if (analyticsResponse.ok) {
-        const analytics = await analyticsResponse.json();
-        setAnalyticsData(analytics);
-      }
+      // Calculate stats
+      const totalUsers = users.length;
+      const totalBillboards = billboards.length;
+      const pendingBillboards = billboards.filter(
+        (b) => b.status === "PENDING"
+      ).length;
+      const activeUsers = users.filter((u) => u.verified).length;
+
+      setStats({
+        totalUsers,
+        totalBillboards,
+        pendingBillboards,
+        activeUsers,
+      });
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Failed to load admin data");
@@ -100,28 +83,6 @@ export function AdminDashboard() {
     }
   };
 
-  const handleBulkVerifyUsers = async (userIds: string[]) => {
-    try {
-      const promises = userIds.map((userId) =>
-        fetch(`/api/admin/users/${userId}/verify`, { method: "POST" })
-      );
-
-      const results = await Promise.all(promises);
-      const successCount = results.filter((r) => r.ok).length;
-
-      if (successCount === userIds.length) {
-        toast.success(`${successCount} users verified successfully`);
-      } else {
-        toast.warning(`${successCount} of ${userIds.length} users verified`);
-      }
-
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error("Error bulk verifying users:", error);
-      toast.error("Failed to verify users");
-    }
-  };
-
   const handleSuspendUser = async (userId: string) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/suspend`, {
@@ -137,32 +98,6 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Error suspending user:", error);
       toast.error("Failed to suspend user");
-    }
-  };
-
-  const handleBulkSuspendUsers = async (userIds: string[]) => {
-    if (!confirm(`Are you sure you want to suspend ${userIds.length} users?`)) {
-      return;
-    }
-
-    try {
-      const promises = userIds.map((userId) =>
-        fetch(`/api/admin/users/${userId}/suspend`, { method: "POST" })
-      );
-
-      const results = await Promise.all(promises);
-      const successCount = results.filter((r) => r.ok).length;
-
-      if (successCount === userIds.length) {
-        toast.success(`${successCount} users suspended successfully`);
-      } else {
-        toast.warning(`${successCount} of ${userIds.length} users suspended`);
-      }
-
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error("Error bulk suspending users:", error);
-      toast.error("Failed to suspend users");
     }
   };
 
@@ -192,39 +127,9 @@ export function AdminDashboard() {
     }
   };
 
-  const handleBulkDeleteUsers = async (userIds: string[]) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${userIds.length} users? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const promises = userIds.map((userId) =>
-        fetch(`/api/admin/users/${userId}`, { method: "DELETE" })
-      );
-
-      const results = await Promise.all(promises);
-      const successCount = results.filter((r) => r.ok).length;
-
-      if (successCount === userIds.length) {
-        toast.success(`${successCount} users deleted successfully`);
-      } else {
-        toast.warning(`${successCount} of ${userIds.length} users deleted`);
-      }
-
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error("Error bulk deleting users:", error);
-      toast.error("Failed to delete users");
-    }
-  };
-
-  const handleSendMessage = async () => {
-    // This would open a message composer modal
-    toast.info("Message composer would open here");
+  const handleSendMessage = (userId: string) => {
+    // Navigate to messages with user pre-selected
+    window.location.href = `/messages?user=${userId}`;
   };
 
   // Billboard moderation handlers
@@ -299,123 +204,9 @@ export function AdminDashboard() {
     }
   };
 
-  const handleBulkApproveBillboards = async (billboardIds: string[]) => {
-    try {
-      const promises = billboardIds.map((billboardId) =>
-        fetch(`/api/admin/billboards/${billboardId}/approve`, {
-          method: "POST",
-        })
-      );
-
-      const results = await Promise.all(promises);
-      const successCount = results.filter((r) => r.ok).length;
-
-      if (successCount === billboardIds.length) {
-        toast.success(`${successCount} billboards approved successfully`);
-      } else {
-        toast.warning(
-          `${successCount} of ${billboardIds.length} billboards approved`
-        );
-      }
-
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error("Error bulk approving billboards:", error);
-      toast.error("Failed to approve billboards");
-    }
-  };
-
-  const handleBulkRejectBillboards = async (
-    billboardIds: string[],
-    reason: string
-  ) => {
-    try {
-      const promises = billboardIds.map((billboardId) =>
-        fetch(`/api/admin/billboards/${billboardId}/reject`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reason }),
-        })
-      );
-
-      const results = await Promise.all(promises);
-      const successCount = results.filter((r) => r.ok).length;
-
-      if (successCount === billboardIds.length) {
-        toast.success(`${successCount} billboards rejected successfully`);
-      } else {
-        toast.warning(
-          `${successCount} of ${billboardIds.length} billboards rejected`
-        );
-      }
-
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error("Error bulk rejecting billboards:", error);
-      toast.error("Failed to reject billboards");
-    }
-  };
-
-  const handleBulkSuspendBillboards = async (billboardIds: string[]) => {
-    if (
-      !confirm(
-        `Are you sure you want to suspend ${billboardIds.length} billboards?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const promises = billboardIds.map((billboardId) =>
-        fetch(`/api/admin/billboards/${billboardId}/suspend`, {
-          method: "POST",
-        })
-      );
-
-      const results = await Promise.all(promises);
-      const successCount = results.filter((r) => r.ok).length;
-
-      if (successCount === billboardIds.length) {
-        toast.success(`${successCount} billboards suspended successfully`);
-      } else {
-        toast.warning(
-          `${successCount} of ${billboardIds.length} billboards suspended`
-        );
-      }
-
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error("Error bulk suspending billboards:", error);
-      toast.error("Failed to suspend billboards");
-    }
-  };
-
-  // Analytics handlers
-  const handleExportReport = async (type: string) => {
-    try {
-      const response = await fetch(`/api/admin/export/${type}`);
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${type}-report-${new Date().toISOString().split("T")[0]}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        toast.success(`${type} report exported successfully`);
-      } else {
-        toast.error("Failed to export report");
-      }
-    } catch (error) {
-      console.error("Error exporting report:", error);
-      toast.error("Failed to export report");
-    }
-  };
-
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
@@ -429,105 +220,64 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Manage users, moderate content, and view platform analytics.
-        </p>
+    <div className="space-y-6">
+      {/* Stats Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeUsers} verified
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Billboards
+            </CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalBillboards}</div>
+            <p className="text-xs text-muted-foreground">
+              All billboard listings
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pending Approval
+            </CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingBillboards}</div>
+            <p className="text-xs text-muted-foreground">Awaiting review</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeUsers}</div>
+            <p className="text-xs text-muted-foreground">Verified accounts</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="billboards">Billboards</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+      <Tabs defaultValue="users" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="billboards">Billboard Moderation</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="analytics">
-          {analyticsData ? (
-            <AnalyticsDashboard
-              data={analyticsData}
-              onExportReport={handleExportReport}
-            />
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics</CardTitle>
-                <CardDescription>Loading analytics data...</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center h-32">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="advanced">
-          {analyticsData ? (
-            <AdvancedAnalytics
-              data={{
-                ...analyticsData,
-                userEngagement: {
-                  activeUsers: Math.floor(analyticsData.totalUsers * 0.15),
-                  averageSessionDuration: 420, // 7 minutes in seconds
-                  bounceRate: 35.2,
-                  returnUserRate: 68.5,
-                },
-                billboardPerformance: {
-                  averageViewsPerBillboard: 1250,
-                  topPerformingBillboards: [
-                    {
-                      id: "1",
-                      title: "Cape Town CBD Premium",
-                      views: 5420,
-                      inquiries: 89,
-                    },
-                    {
-                      id: "2",
-                      title: "Johannesburg Highway",
-                      views: 4890,
-                      inquiries: 76,
-                    },
-                    {
-                      id: "3",
-                      title: "Durban Beachfront",
-                      views: 4320,
-                      inquiries: 65,
-                    },
-                  ],
-                  conversionRate: 6.8,
-                },
-                systemHealth: {
-                  uptime: 99.8,
-                  responseTime: 145,
-                  errorRate: 0.2,
-                  activeConnections: 342,
-                },
-              }}
-              onExportReport={handleExportReport}
-              onRefreshData={fetchData}
-            />
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Advanced Analytics</CardTitle>
-                <CardDescription>
-                  Loading advanced analytics data...
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center h-32">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
 
         <TabsContent value="users">
           <UserManagement
@@ -536,9 +286,6 @@ export function AdminDashboard() {
             onSuspendUser={handleSuspendUser}
             onDeleteUser={handleDeleteUser}
             onSendMessage={handleSendMessage}
-            onBulkVerifyUsers={handleBulkVerifyUsers}
-            onBulkSuspendUsers={handleBulkSuspendUsers}
-            onBulkDeleteUsers={handleBulkDeleteUsers}
           />
         </TabsContent>
 
@@ -549,43 +296,6 @@ export function AdminDashboard() {
             onRejectBillboard={handleRejectBillboard}
             onViewBillboard={handleViewBillboard}
             onSuspendBillboard={handleSuspendBillboard}
-            onBulkApproveBillboards={handleBulkApproveBillboards}
-            onBulkRejectBillboards={handleBulkRejectBillboards}
-            onBulkSuspendBillboards={handleBulkSuspendBillboards}
-          />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <AdminReports
-            onGenerateReport={async (config) => {
-              try {
-                const queryParams = new URLSearchParams({
-                  format: config.format,
-                  start_date: config.dateRange.start,
-                  end_date: config.dateRange.end,
-                  ...config.filters,
-                });
-
-                const response = await fetch(
-                  `/api/admin/export/${config.type}?${queryParams}`
-                );
-
-                if (response.ok) {
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `${config.type}-report-${new Date().toISOString().split("T")[0]}.${config.format}`;
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                } else {
-                  throw new Error("Failed to generate report");
-                }
-              } catch (error) {
-                console.error("Error generating report:", error);
-                throw error;
-              }
-            }}
           />
         </TabsContent>
       </Tabs>

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { UserRole } from "@prisma/client";
 import { CreateBillboardClient } from "./create-billboard-client";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 
 export default async function CreateBillboardPage() {
   const session = await getServerSession(authOptions);
@@ -17,15 +18,16 @@ export default async function CreateBillboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Create Billboard Listing</h1>
-        <p className="text-muted-foreground mt-2">
-          List your digital billboard space and connect with advertisers
-        </p>
-      </div>
-
+    <DashboardLayout
+      breadcrumbs={[
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "My Billboards", href: "/dashboard/billboards" },
+        { label: "Create New" },
+      ]}
+      title="Create Billboard Listing"
+      description="List your digital billboard space and connect with advertisers"
+    >
       <CreateBillboardClient />
-    </div>
+    </DashboardLayout>
   );
 }

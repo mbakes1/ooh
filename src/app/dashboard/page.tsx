@@ -8,7 +8,7 @@ import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 
 export const metadata: Metadata = {
   title: "Dashboard - Digital Billboard Marketplace",
-  description: "Manage your billboard listings and track performance",
+  description: "Manage your billboard listings",
 };
 
 export default async function DashboardPage() {
@@ -30,7 +30,7 @@ export default async function DashboardPage() {
         { label: "Overview" },
       ]}
       title="Billboard Dashboard"
-      description="Manage your billboard listings and track performance"
+      description="Manage your billboard listings"
     >
       <BillboardDashboard />
     </DashboardLayout>

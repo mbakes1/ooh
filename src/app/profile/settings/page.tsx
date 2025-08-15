@@ -1,24 +1,121 @@
-import { Metadata } from "next";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/config";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
-export const metadata: Metadata = {
-  title: "Settings - Digital Billboard Marketplace",
-  description: "Manage your account settings and preferences",
-};
+interface UserSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  marketingEmails: boolean;
+}
 
-export default async function SettingsPage() {
-  const session = await getServerSession(authOptions);
+export default function SettingsPage() {
+  const { data: session, status } = useSession();
+  const [settings, setSettings] = useState<UserSettings>({
+    emailNotifications: true,
+    pushNotifications: true,
+    marketingEmails: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
 
-  if (!session) {
-    redirect("/auth/login");
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      redirect("/auth/login");
+    }
+    if (session?.user) {
+      const nameParts = session.user.name?.split(" ") || [];
+      setFirstName(nameParts[0] || "");
+      setLastName(nameParts[1] || "");
+      setEmail(session.user.email || "");
+      fetchSettings();
+    }
+  }, [status, session]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("/api/user/settings");
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data.settings || settings);
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings:", error);
+    }
+  };
+
+  const handleSaveAccountInfo = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${firstName} ${lastName}`.trim(),
+          email,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Account information updated successfully");
+      } else {
+        throw new Error("Failed to update account information");
+      }
+    } catch (err) {
+      console.error("Failed to update account information:", err);
+      toast.error("Failed to update account information");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/user/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+
+      if (response.ok) {
+        toast.success("Settings updated successfully");
+      } else {
+        throw new Error("Failed to update settings");
+      }
+    } catch (err) {
+      console.error("Failed to update settings:", err);
+      toast.error("Failed to update settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === "loading") {
+    return (
+      <DashboardLayout
+        breadcrumbs={[
+          { label: "Profile", href: "/profile" },
+          { label: "Settings" },
+        ]}
+        title="Account Settings"
+        description="Manage your account settings and preferences"
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -39,14 +136,16 @@ export default async function SettingsPage() {
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
-                  defaultValue={session.user.name?.split(" ")[0] || ""}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
-                  defaultValue={session.user.name?.split(" ")[1] || ""}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
             </div>
@@ -55,8 +154,14 @@ export default async function SettingsPage() {
               <Input
                 id="email"
                 type="email"
-                defaultValue={session.user.email || ""}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSaveAccountInfo} disabled={loading}>
+                {loading ? "Saving..." : "Save Account Info"}
+              </Button>
             </div>
           </div>
         </div>
@@ -73,7 +178,12 @@ export default async function SettingsPage() {
                   Receive email notifications for new messages
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch
+                checked={settings.emailNotifications}
+                onCheckedChange={(checked) =>
+                  setSettings({ ...settings, emailNotifications: checked })
+                }
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -83,7 +193,12 @@ export default async function SettingsPage() {
                   Receive push notifications in your browser
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch
+                checked={settings.pushNotifications}
+                onCheckedChange={(checked) =>
+                  setSettings({ ...settings, pushNotifications: checked })
+                }
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -93,21 +208,34 @@ export default async function SettingsPage() {
                   Receive updates about new features and promotions
                 </p>
               </div>
-              <Switch />
+              <Switch
+                checked={settings.marketingEmails}
+                onCheckedChange={(checked) =>
+                  setSettings({ ...settings, marketingEmails: checked })
+                }
+              />
             </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleSaveSettings} disabled={loading}>
+              {loading ? "Saving..." : "Save Preferences"}
+            </Button>
           </div>
         </div>
 
         <div className="bg-card rounded-lg border p-6">
           <h3 className="text-lg font-semibold mb-4">Security</h3>
           <div className="space-y-4">
-            <Button variant="outline">Change Password</Button>
-            <Button variant="outline">Enable Two-Factor Authentication</Button>
+            <p className="text-sm text-muted-foreground">
+              Security features will be available in a future update.
+            </p>
+            <Button variant="outline" disabled>
+              Change Password (Coming Soon)
+            </Button>
+            <Button variant="outline" disabled>
+              Enable Two-Factor Authentication (Coming Soon)
+            </Button>
           </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button>Save Changes</Button>
         </div>
       </div>
     </DashboardLayout>

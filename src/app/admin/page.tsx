@@ -7,8 +7,7 @@ import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard - Digital Billboard Marketplace",
-  description:
-    "Administrative dashboard for managing users, billboards, and platform analytics.",
+  description: "Administrative dashboard for managing users and billboards.",
 };
 
 export default async function AdminPage() {
@@ -30,7 +29,7 @@ export default async function AdminPage() {
         { label: "Dashboard" },
       ]}
       title="Admin Dashboard"
-      description="Administrative dashboard for managing users, billboards, and platform analytics"
+      description="Administrative dashboard for managing users and billboards"
     >
       <AdminDashboard />
     </DashboardLayout>
