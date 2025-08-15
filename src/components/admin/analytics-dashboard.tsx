@@ -19,7 +19,34 @@ import {
   DollarSign,
   MapPin,
   Activity,
+  BarChart3,
+  LineChart,
 } from "lucide-react";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  Line,
+  LineChart as RechartsLineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import {
+  MetricWidget,
+  ListWidget,
+  ChartWidget,
+} from "@/components/dashboard/dashboard-widgets";
 
 interface AnalyticsData {
   totalUsers: number;
@@ -95,6 +122,15 @@ export function AnalyticsDashboard({
             <p className="text-xs text-muted-foreground">
               {formatGrowthRate(data.userGrowthRate)} from last month
             </p>
+            <div className="mt-2">
+              <Progress
+                value={Math.min(
+                  (data.newUsersThisMonth / data.totalUsers) * 100,
+                  100
+                )}
+                className="h-1"
+              />
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -111,6 +147,15 @@ export function AnalyticsDashboard({
             <p className="text-xs text-muted-foreground">
               {formatGrowthRate(data.billboardGrowthRate)} from last month
             </p>
+            <div className="mt-2">
+              <Progress
+                value={Math.min(
+                  (data.newBillboardsThisMonth / data.totalBillboards) * 100,
+                  100
+                )}
+                className="h-1"
+              />
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -125,6 +170,15 @@ export function AnalyticsDashboard({
             <p className="text-xs text-muted-foreground">
               {formatGrowthRate(data.messageGrowthRate)} from last month
             </p>
+            <div className="mt-2">
+              <Progress
+                value={Math.min(
+                  (data.messagesThisMonth / data.totalMessages) * 100,
+                  100
+                )}
+                className="h-1"
+              />
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -141,6 +195,15 @@ export function AnalyticsDashboard({
             <p className="text-xs text-muted-foreground">
               {formatGrowthRate(data.revenueGrowthRate)} from last month
             </p>
+            <div className="mt-2">
+              <Progress
+                value={Math.min(
+                  (data.revenueThisMonth / data.totalRevenue) * 100,
+                  100
+                )}
+                className="h-1"
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -198,7 +261,7 @@ export function AnalyticsDashboard({
       </div>
 
       {/* Geographic Distribution */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -258,13 +321,61 @@ export function AnalyticsDashboard({
             ))}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4" />
+              <span>Province Distribution</span>
+            </CardTitle>
+            <CardDescription>Visual breakdown by province</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={data.topProvinces.reduce((acc, province, index) => {
+                acc[province.name] = {
+                  label: province.name,
+                  color: `hsl(var(--chart-${(index % 5) + 1}))`,
+                };
+                return acc;
+              }, {} as any)}
+              className="h-[200px]"
+            >
+              <PieChart>
+                <Pie
+                  data={data.topProvinces}
+                  dataKey="count"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                  fill="#8884d8"
+                >
+                  {data.topProvinces.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                    />
+                  ))}
+                </Pie>
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                  formatter={(value, name) => [
+                    `${value} (${data.topProvinces.find((p) => p.name === name)?.percentage.toFixed(1)}%)`,
+                    name,
+                  ]}
+                />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Monthly Trends */}
+      {/* Monthly Trends Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Activity className="h-4 w-4" />
+            <BarChart3 className="h-4 w-4" />
             <span>Monthly Trends</span>
           </CardTitle>
           <CardDescription>
@@ -272,32 +383,80 @@ export function AnalyticsDashboard({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {data.monthlyStats.map((month) => (
-              <div
-                key={month.month}
-                className="grid grid-cols-5 gap-4 items-center"
-              >
-                <div className="font-medium">{month.month}</div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Users:</span>{" "}
-                  {month.users}
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Billboards:</span>{" "}
-                  {month.billboards}
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Messages:</span>{" "}
-                  {month.messages}
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Revenue:</span>{" "}
-                  {formatCurrency(month.revenue)}
-                </div>
-              </div>
-            ))}
-          </div>
+          <ChartContainer
+            config={{
+              users: {
+                label: "Users",
+                color: "hsl(var(--chart-1))",
+              },
+              billboards: {
+                label: "Billboards",
+                color: "hsl(var(--chart-2))",
+              },
+              messages: {
+                label: "Messages",
+                color: "hsl(var(--chart-3))",
+              },
+              revenue: {
+                label: "Revenue (ZAR)",
+                color: "hsl(var(--chart-4))",
+              },
+            }}
+            className="h-[300px]"
+          >
+            <BarChart data={data.monthlyStats}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar dataKey="users" fill="var(--color-users)" />
+              <Bar dataKey="billboards" fill="var(--color-billboards)" />
+              <Bar dataKey="messages" fill="var(--color-messages)" />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      {/* Revenue Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <LineChart className="h-4 w-4" />
+            <span>Revenue Trend</span>
+          </CardTitle>
+          <CardDescription>Monthly revenue growth over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={{
+              revenue: {
+                label: "Revenue (ZAR)",
+                color: "hsl(var(--chart-1))",
+              },
+            }}
+            className="h-[200px]"
+          >
+            <RechartsLineChart data={data.monthlyStats}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <ChartTooltip
+                content={<ChartTooltipContent />}
+                formatter={(value) => [
+                  formatCurrency(Number(value)),
+                  "Revenue",
+                ]}
+              />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="var(--color-revenue)"
+                strokeWidth={2}
+                dot={{ fill: "var(--color-revenue)" }}
+              />
+            </RechartsLineChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 

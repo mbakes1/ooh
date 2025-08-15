@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart3, MessageSquare, TrendingUp, DollarSign } from "lucide-react";
+import {
+  MetricWidget,
+  StatusWidget,
+} from "@/components/dashboard/dashboard-widgets";
 
 interface BillboardWithAnalytics {
   id: string;
@@ -107,58 +111,84 @@ export function BillboardStats({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {statCards.map((stat, index) => (
-        <Card key={index}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-            <stat.icon
-              className={`h-4 w-4 ${stat.color || "text-muted-foreground"}`}
-            />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground">{stat.description}</p>
-          </CardContent>
-        </Card>
-      ))}
+      <MetricWidget
+        title="Total Listings"
+        value={stats.total}
+        description="All your billboard listings"
+        icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
+        showProgress={true}
+        progressValue={stats.active}
+        progressMax={stats.total}
+      />
 
-      {/* Status Breakdown */}
-      <Card className="md:col-span-2 lg:col-span-4">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">
-            Status Breakdown
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center space-x-2">
-              <Badge variant="default" className="bg-green-100 text-green-800">
-                Active
-              </Badge>
-              <span className="text-sm text-muted-foreground">
-                {stats.active} listings
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge variant="secondary">Inactive</Badge>
-              <span className="text-sm text-muted-foreground">
-                {stats.inactive} listings
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge
-                variant="outline"
-                className="border-yellow-300 text-yellow-700"
-              >
-                Pending
-              </Badge>
-              <span className="text-sm text-muted-foreground">
-                {stats.pending} listings
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <MetricWidget
+        title="Active Listings"
+        value={stats.active}
+        description="Currently visible to advertisers"
+        icon={<TrendingUp className="h-4 w-4 text-green-600" />}
+        trend={
+          stats.active > stats.inactive
+            ? "up"
+            : stats.active < stats.inactive
+              ? "down"
+              : "neutral"
+        }
+        trendValue={`${((stats.active / stats.total) * 100).toFixed(0)}% active`}
+        showProgress={true}
+        progressValue={stats.active}
+        progressMax={stats.total}
+      />
+
+      <MetricWidget
+        title="Total Inquiries"
+        value={stats.totalInquiries}
+        description="Messages from potential advertisers"
+        icon={<MessageSquare className="h-4 w-4 text-blue-600" />}
+        trend={stats.totalInquiries > 0 ? "up" : "neutral"}
+        trendValue={
+          stats.totalInquiries > 0 ? "Active interest" : "No inquiries yet"
+        }
+      />
+
+      <MetricWidget
+        title="Average Price"
+        value={stats.averagePrice}
+        description="Average listing price"
+        format="currency"
+        icon={<DollarSign className="h-4 w-4 text-purple-600" />}
+      />
+
+      {/* Status Breakdown Widget */}
+      <StatusWidget
+        title="Listing Status Overview"
+        description="Current status of all your listings"
+        status={
+          stats.active > stats.inactive
+            ? "healthy"
+            : stats.pending > 0
+              ? "warning"
+              : "critical"
+        }
+        statusText={`${stats.active} Active, ${stats.pending} Pending, ${stats.inactive} Inactive`}
+        details={[
+          {
+            label: "Active Listings",
+            value: `${stats.active}`,
+            status: "healthy",
+          },
+          {
+            label: "Pending Approval",
+            value: `${stats.pending}`,
+            status: stats.pending > 0 ? "warning" : "healthy",
+          },
+          {
+            label: "Inactive Listings",
+            value: `${stats.inactive}`,
+            status: stats.inactive > stats.active ? "warning" : "healthy",
+          },
+        ]}
+        className="md:col-span-2 lg:col-span-4"
+      />
     </div>
   );
 }

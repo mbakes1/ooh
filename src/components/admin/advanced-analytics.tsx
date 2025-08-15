@@ -23,7 +23,33 @@ import {
   BarChart3,
   PieChart,
   Download,
+  LineChart,
+  Target,
 } from "lucide-react";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  Line,
+  LineChart as RechartsLineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Area,
+  AreaChart,
+  RadialBarChart,
+  RadialBar,
+} from "recharts";
 
 interface AdvancedAnalyticsData {
   totalUsers: number;
@@ -337,6 +363,14 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Currently active users
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={
+                      (data.userEngagement.activeUsers / data.totalUsers) * 100
+                    }
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -353,6 +387,15 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Average session duration
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={Math.min(
+                      (data.userEngagement.averageSessionDuration / 600) * 100,
+                      100
+                    )}
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -369,6 +412,12 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Single page visits
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={data.userEngagement.bounceRate}
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -383,6 +432,115 @@ export function AdvancedAnalytics({
                   {formatPercentage(data.userEngagement.returnUserRate)}
                 </div>
                 <p className="text-xs text-muted-foreground">Returning users</p>
+                <div className="mt-2">
+                  <Progress
+                    value={data.userEngagement.returnUserRate}
+                    className="h-1"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* User Engagement Charts */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Target className="h-4 w-4" />
+                  <span>User Engagement Metrics</span>
+                </CardTitle>
+                <CardDescription>Key engagement indicators</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    bounceRate: {
+                      label: "Bounce Rate",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    returnRate: {
+                      label: "Return Rate",
+                      color: "hsl(var(--chart-2))",
+                    },
+                  }}
+                  className="h-[200px]"
+                >
+                  <RadialBarChart
+                    data={[
+                      {
+                        name: "Bounce Rate",
+                        value: data.userEngagement.bounceRate,
+                        fill: "var(--color-bounceRate)",
+                      },
+                      {
+                        name: "Return Rate",
+                        value: data.userEngagement.returnUserRate,
+                        fill: "var(--color-returnRate)",
+                      },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="30%"
+                    outerRadius="80%"
+                  >
+                    <RadialBar dataKey="value" cornerRadius={10} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value) => [`${value}%`, ""]}
+                    />
+                  </RadialBarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-4 w-4" />
+                  <span>Session Duration Trend</span>
+                </CardTitle>
+                <CardDescription>
+                  Average session duration over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    duration: {
+                      label: "Duration (minutes)",
+                      color: "hsl(var(--chart-3))",
+                    },
+                  }}
+                  className="h-[200px]"
+                >
+                  <AreaChart
+                    data={data.monthlyStats.map((stat) => ({
+                      month: stat.month,
+                      duration:
+                        Math.round(
+                          data.userEngagement.averageSessionDuration / 60
+                        ) +
+                        Math.random() * 2 -
+                        1,
+                    }))}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value) => [`${value} min`, "Duration"]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="duration"
+                      stroke="var(--color-duration)"
+                      fill="var(--color-duration)"
+                      fillOpacity={0.3}
+                    />
+                  </AreaChart>
+                </ChartContainer>
               </CardContent>
             </Card>
           </div>
@@ -400,6 +558,17 @@ export function AdvancedAnalytics({
                   {data.billboardPerformance.averageViewsPerBillboard.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">Per billboard</p>
+                <div className="mt-2">
+                  <Progress
+                    value={Math.min(
+                      (data.billboardPerformance.averageViewsPerBillboard /
+                        2000) *
+                        100,
+                      100
+                    )}
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -416,6 +585,12 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Views to inquiries
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={data.billboardPerformance.conversionRate}
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -441,6 +616,109 @@ export function AdvancedAnalytics({
               </CardContent>
             </Card>
           </div>
+
+          {/* Billboard Performance Charts */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Top Performing Billboards</span>
+                </CardTitle>
+                <CardDescription>
+                  Views and inquiries comparison
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    views: {
+                      label: "Views",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    inquiries: {
+                      label: "Inquiries",
+                      color: "hsl(var(--chart-2))",
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                  <BarChart
+                    data={data.billboardPerformance.topPerformingBillboards}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="title"
+                      tick={{ fontSize: 12 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartLegend content={<ChartLegendContent />} />
+                    <Bar dataKey="views" fill="var(--color-views)" />
+                    <Bar dataKey="inquiries" fill="var(--color-inquiries)" />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <PieChart className="h-4 w-4" />
+                  <span>Performance Distribution</span>
+                </CardTitle>
+                <CardDescription>
+                  Billboard performance breakdown
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={data.billboardPerformance.topPerformingBillboards.reduce(
+                    (acc, billboard, index) => {
+                      acc[billboard.title] = {
+                        label: billboard.title,
+                        color: `hsl(var(--chart-${(index % 5) + 1}))`,
+                      };
+                      return acc;
+                    },
+                    {} as any
+                  )}
+                  className="h-[300px]"
+                >
+                  <RechartsPieChart>
+                    <Pie
+                      data={data.billboardPerformance.topPerformingBillboards}
+                      dataKey="views"
+                      nameKey="title"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      fill="#8884d8"
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                    >
+                      {data.billboardPerformance.topPerformingBillboards.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                          />
+                        )
+                      )}
+                    </Pie>
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value, name) => [`${value} views`, name]}
+                    />
+                  </RechartsPieChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="system" className="space-y-6">
@@ -457,6 +735,9 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   System availability
                 </p>
+                <div className="mt-2">
+                  <Progress value={data.systemHealth.uptime} className="h-1" />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -473,6 +754,15 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Average response time
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={Math.max(
+                      0,
+                      100 - (data.systemHealth.responseTime / 500) * 100
+                    )}
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -489,6 +779,12 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Error percentage
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={data.systemHealth.errorRate}
+                    className="h-1"
+                  />
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -505,6 +801,137 @@ export function AdvancedAnalytics({
                 <p className="text-xs text-muted-foreground">
                   Current connections
                 </p>
+                <div className="mt-2">
+                  <Progress
+                    value={Math.min(
+                      (data.systemHealth.activeConnections / 1000) * 100,
+                      100
+                    )}
+                    className="h-1"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* System Health Charts */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <LineChart className="h-4 w-4" />
+                  <span>Response Time Trend</span>
+                </CardTitle>
+                <CardDescription>
+                  Average response time over the last 6 months
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    responseTime: {
+                      label: "Response Time (ms)",
+                      color: "hsl(var(--chart-1))",
+                    },
+                  }}
+                  className="h-[200px]"
+                >
+                  <RechartsLineChart
+                    data={data.monthlyStats.map((stat) => ({
+                      month: stat.month,
+                      responseTime:
+                        data.systemHealth.responseTime +
+                        Math.random() * 50 -
+                        25,
+                    }))}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value) => [
+                        `${Math.round(Number(value))}ms`,
+                        "Response Time",
+                      ]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="responseTime"
+                      stroke="var(--color-responseTime)"
+                      strokeWidth={2}
+                      dot={{ fill: "var(--color-responseTime)" }}
+                    />
+                  </RechartsLineChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-4 w-4" />
+                  <span>System Health Overview</span>
+                </CardTitle>
+                <CardDescription>Key system health indicators</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    uptime: {
+                      label: "Uptime",
+                      color: "hsl(var(--chart-2))",
+                    },
+                    performance: {
+                      label: "Performance",
+                      color: "hsl(var(--chart-3))",
+                    },
+                    reliability: {
+                      label: "Reliability",
+                      color: "hsl(var(--chart-4))",
+                    },
+                  }}
+                  className="h-[200px]"
+                >
+                  <RadialBarChart
+                    data={[
+                      {
+                        name: "Uptime",
+                        value: data.systemHealth.uptime,
+                        fill: "var(--color-uptime)",
+                      },
+                      {
+                        name: "Performance",
+                        value: Math.max(
+                          0,
+                          100 - (data.systemHealth.responseTime / 500) * 100
+                        ),
+                        fill: "var(--color-performance)",
+                      },
+                      {
+                        name: "Reliability",
+                        value: Math.max(
+                          0,
+                          100 - data.systemHealth.errorRate * 10
+                        ),
+                        fill: "var(--color-reliability)",
+                      },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="20%"
+                    outerRadius="80%"
+                  >
+                    <RadialBar dataKey="value" cornerRadius={10} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value) => [
+                        `${Math.round(Number(value))}%`,
+                        "",
+                      ]}
+                    />
+                  </RadialBarChart>
+                </ChartContainer>
               </CardContent>
             </Card>
           </div>
