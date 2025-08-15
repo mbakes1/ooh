@@ -42,6 +42,13 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const addActivity = useCallback(
+    (activity: ActivityItem) => {
+      setActivities((prev) => [activity, ...prev.slice(0, limit - 1)]);
+    },
+    [limit]
+  );
+
   const fetchActivities = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,16 +63,14 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
       if (notificationsResponse.ok) {
         const notificationsData = await notificationsResponse.json();
         const notificationActivities: ActivityItem[] =
-          notificationsData.notifications.map(
-            (notification: Record<string, unknown>) => ({
-              id: `notification-${notification.id}`,
-              type: notification.type.toLowerCase(),
-              title: notification.title,
-              description: notification.message,
-              timestamp: notification.createdAt,
-              data: notification.data,
-            })
-          );
+          notificationsData.notifications.map((notification: any) => ({
+            id: `notification-${notification.id}`,
+            type: String(notification.type || "system").toLowerCase(),
+            title: String(notification.title || "Notification"),
+            description: String(notification.message || ""),
+            timestamp: notification.createdAt,
+            data: notification.data,
+          }));
 
         // Combine and sort activities
         const allActivities = [
@@ -151,41 +156,6 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
       };
     }
   }, [socket, session?.user?.id, addActivity]);
-
-  const fetchActivities = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch recent notifications as activities
-      const notificationsResponse = await fetch(
-        `/api/notifications?limit=${limit}`
-      );
-      if (notificationsResponse.ok) {
-        const notificationsData = await notificationsResponse.json();
-        const notificationActivities: ActivityItem[] =
-          notificationsData.notifications.map(
-            (notification: Record<string, unknown>) => ({
-              id: `notification-${notification.id}`,
-              type: notification.type.toLowerCase(),
-              title: notification.title,
-              description: notification.message,
-              timestamp: notification.createdAt,
-              data: notification.data,
-            })
-          );
-
-        setActivities(notificationActivities);
-      }
-    } catch (error) {
-      console.error("Error fetching activities:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addActivity = (activity: ActivityItem) => {
-    setActivities((prev) => [activity, ...prev.slice(0, limit - 1)]);
-  };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -299,14 +269,15 @@ export function ActivityFeed({ className, limit = 10 }: ActivityFeedProps) {
                         </div>
                       )}
 
-                      {activity.data?.billboardTitle && (
+                      {activity.data?.billboardTitle &&
+                      typeof activity.data.billboardTitle === "string" ? (
                         <div className="flex items-center space-x-2 mt-2">
                           <Building className="h-3 w-3 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">
                             {activity.data.billboardTitle}
                           </span>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>

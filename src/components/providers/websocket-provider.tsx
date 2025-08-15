@@ -65,7 +65,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         emit: () => {
           // Handle emit events
         },
-      } as Socket<ServerToClientEvents, ClientToServerEvents>;
+      } as unknown as Socket<ServerToClientEvents, ClientToServerEvents>;
 
       setSocket(mockSocket);
 
