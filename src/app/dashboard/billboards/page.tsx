@@ -83,8 +83,6 @@ export default function BillboardsPage() {
           { label: "Dashboard", href: "/dashboard" },
           { label: "My Billboards" },
         ]}
-        title="My Billboards"
-        description="Manage and monitor your billboard listings"
       >
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -99,8 +97,6 @@ export default function BillboardsPage() {
         { label: "Dashboard", href: "/dashboard" },
         { label: "My Billboards" },
       ]}
-      title="My Billboards"
-      description="Manage and monitor your billboard listings"
     >
       <BillboardManagementTable
         billboards={billboards}

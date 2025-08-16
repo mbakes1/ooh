@@ -70,8 +70,6 @@ export default function SentMessagesPage() {
           { label: "Messages", href: "/messages" },
           { label: "Sent" },
         ]}
-        title="Sent Messages"
-        description="View messages you have sent"
       >
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -86,8 +84,6 @@ export default function SentMessagesPage() {
         { label: "Messages", href: "/messages" },
         { label: "Sent" },
       ]}
-      title="Sent Messages"
-      description="View messages you have sent"
     >
       <div className="space-y-6">
         <div className="flex items-center gap-4">

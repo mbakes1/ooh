@@ -129,12 +129,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout
-      breadcrumbs={[{ label: "Profile" }]}
-      title="Profile Settings"
-      description="Manage your account information and preferences"
-    >
-      <div className="max-w-4xl">
+    <DashboardLayout breadcrumbs={[{ label: "Profile" }]}>
+      <div className="max-w-full">
         {/* Success Message */}
         {successMessage && (
           <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
@@ -150,14 +146,14 @@ export default function ProfilePage() {
         )}
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Form - Takes up 2 columns */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-3 gap-8">
+          {/* Profile Form - Takes up more space */}
+          <div className="xl:col-span-3 lg:col-span-2">
             <ProfileForm user={user} onUpdate={handleProfileUpdate} />
           </div>
 
-          {/* Profile Completion - Takes up 1 column */}
-          <div className="lg:col-span-1">
+          {/* Profile Completion - Takes up remaining space */}
+          <div className="xl:col-span-1 lg:col-span-1">
             <ProfileCompletion user={user} />
           </div>
         </div>

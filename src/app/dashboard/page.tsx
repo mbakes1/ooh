@@ -29,8 +29,6 @@ export default async function DashboardPage() {
         { label: "Dashboard", href: "/dashboard" },
         { label: "Overview" },
       ]}
-      title="Billboard Dashboard"
-      description="Manage your billboard listings"
     >
       <BillboardDashboard />
     </DashboardLayout>

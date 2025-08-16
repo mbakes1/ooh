@@ -97,8 +97,6 @@ export default function AdminUsersPage() {
           { label: "Administration", href: "/admin" },
           { label: "Users" },
         ]}
-        title="User Management"
-        description="Manage platform users, roles, and permissions"
       >
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -113,8 +111,6 @@ export default function AdminUsersPage() {
         { label: "Administration", href: "/admin" },
         { label: "Users" },
       ]}
-      title="User Management"
-      description="Manage platform users, roles, and permissions"
     >
       <UserManagement
         users={users}

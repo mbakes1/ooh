@@ -24,8 +24,6 @@ export default async function CreateBillboardPage() {
         { label: "My Billboards", href: "/dashboard/billboards" },
         { label: "Create New" },
       ]}
-      title="Create Billboard Listing"
-      description="List your digital billboard space and connect with advertisers"
     >
       <CreateBillboardClient />
     </DashboardLayout>

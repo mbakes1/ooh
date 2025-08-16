@@ -28,8 +28,6 @@ export default async function AdminPage() {
         { label: "Administration", href: "/admin" },
         { label: "Dashboard" },
       ]}
-      title="Admin Dashboard"
-      description="Administrative dashboard for managing users and billboards"
     >
       <AdminDashboard />
     </DashboardLayout>

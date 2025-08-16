@@ -19,11 +19,7 @@ export default async function MessagesPage() {
   }
 
   return (
-    <DashboardLayout
-      breadcrumbs={[{ label: "Messages" }]}
-      title="Messages"
-      description="Connect with billboard owners and advertisers"
-    >
+    <DashboardLayout breadcrumbs={[{ label: "Messages" }]}>
       <MessageCenterRefined />
     </DashboardLayout>
   );

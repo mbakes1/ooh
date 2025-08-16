@@ -177,11 +177,7 @@ function SearchPageContent() {
   };
 
   return (
-    <DashboardLayout
-      breadcrumbs={[{ label: "Explore Billboards" }]}
-      title="Explore Billboards"
-      description="Discover premium digital advertising spaces"
-    >
+    <DashboardLayout breadcrumbs={[{ label: "Explore Billboards" }]}>
       <div className="space-y-6">
         {/* Search Form */}
         <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
