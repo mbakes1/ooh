@@ -74,7 +74,7 @@ export const initializeWebSocket = (server: HTTPServer) => {
     SocketData
   >(server, {
     cors: {
-      origin: process.env.NEXTAUTH_URL || "http://localhost:3000",
+      origin: process.env.NEXTAUTH_URL?.split(",") || "http://localhost:3000",
       methods: ["GET", "POST"],
     },
   });

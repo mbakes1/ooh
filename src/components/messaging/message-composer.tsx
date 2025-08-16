@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, KeyboardEvent } from "react";
-import { Button } from "@/components/ui/button";
 import { Send, Paperclip, Mic, Plus, X } from "lucide-react";
 import {
   Tooltip,

@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // In a real application, you would send an email here
     // For now, we'll just log the reset link
-    const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${jwtToken}`;
+    const resetLink = `${process.env.NEXTAUTH_URL?.split(',')[0] || 'http://localhost:3000'}/auth/reset-password?token=${jwtToken}`;
     console.log(`Password reset link for ${user.email}: ${resetLink}`);
 
     return NextResponse.json(

@@ -119,7 +119,7 @@ Add these security-related environment variables:
 ```env
 # Security
 ENCRYPTION_KEY="your-32-character-encryption-key-here"
-ALLOWED_ORIGINS="http://localhost:3000,https://yourdomain.com"
+ALLOWED_ORIGINS="http://localhost:3000"
 
 # Rate Limiting (Optional - for production with Upstash Redis)
 UPSTASH_REDIS_REST_URL="your-upstash-redis-url"

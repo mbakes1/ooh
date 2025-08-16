@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         senderName: message.sender.name,
         messageContent: message.content,
         billboardTitle: updatedConversation.billboard?.title,
-        conversationUrl: `${process.env.NEXTAUTH_URL}/messages`,
+        conversationUrl: `${process.env.NEXTAUTH_URL?.split(',')[0] || 'http://localhost:3000'}/messages`,
       });
     } catch (error) {
       console.error("Failed to send email notification:", error);
