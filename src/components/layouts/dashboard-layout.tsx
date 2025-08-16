@@ -37,8 +37,8 @@ export function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b">
-          <div className="flex items-center gap-2 px-4">
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center gap-2 px-6">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             {breadcrumbs.length > 0 && (
@@ -67,16 +67,18 @@ export function DashboardLayout({
             )}
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-6 p-6 pt-6">
           {(title || description) && (
-            <div className="space-y-2">
-              {title && <h1 className="text-3xl font-bold">{title}</h1>}
+            <div className="space-y-3">
+              {title && (
+                <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+              )}
               {description && (
-                <p className="text-muted-foreground">{description}</p>
+                <p className="text-muted-foreground text-lg">{description}</p>
               )}
             </div>
           )}
-          {children}
+          <div className="flex-1">{children}</div>
         </div>
       </SidebarInset>
     </SidebarProvider>

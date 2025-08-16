@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/session-provider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { WebSocketProvider } from "@/components/providers/websocket-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
 
 export const metadata: Metadata = {
   title: "Digital Billboard Marketplace",
@@ -20,7 +28,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className} suppressHydrationWarning={true}>
+      <body
+        className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}
+        suppressHydrationWarning={true}
+      >
         <AuthProvider>
           <WebSocketProvider>
             <div className="min-h-screen">{children}</div>
