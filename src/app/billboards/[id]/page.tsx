@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
-import { BillboardDetailView } from "@/components/billboard/billboard-detail-view";
+import { BillboardDetailClean } from "@/components/billboard/billboard-detail-clean";
 
 interface BillboardDetailPageProps {
   params: Promise<{
@@ -49,15 +49,13 @@ export default async function BillboardDetailPage({
   const isOwner = session?.user?.id === billboard.ownerId;
 
   return (
-    <div className="container mx-auto py-8">
-      <BillboardDetailView
-        billboard={{
-          ...billboard,
-          basePrice: Number(billboard.basePrice),
-        }}
-        isOwner={isOwner}
-        currentUser={session?.user || null}
-      />
-    </div>
+    <BillboardDetailClean
+      billboard={{
+        ...billboard,
+        basePrice: Number(billboard.basePrice),
+      }}
+      isOwner={isOwner}
+      currentUser={session?.user || null}
+    />
   );
 }

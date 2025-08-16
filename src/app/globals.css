@@ -34,8 +34,10 @@
   --sidebar-accent: 0 0% 92.1569%;
   --sidebar-accent-foreground: 0 0% 0%;
   --sidebar-border: 0 0% 92.1569%;
-  --sidebar-ring: 0 0% 0%;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, sans-serif, system-ui;
+  --sidebar-ring: 257.9412 100% 60%;
+  --font-sans:
+    var(--font-geist-sans), var(--font-dm-sans), ui-sans-serif, system-ui,
+    sans-serif;
   --font-serif: Lora, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --radius: 1.4rem;
@@ -71,6 +73,11 @@ body {
       "calt" 1;
   }
 
+  /* Global focus ring styling - all elements use primary color */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
+  }
+
   /* Improved text rendering */
   h1,
   h2,
@@ -94,9 +101,9 @@ body {
 
 /* Enhanced visual improvements */
 @layer components {
-  /* Improved focus states */
+  /* Improved focus states - all focus rings use primary color */
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
   }
 
   /* Better button hover states */
@@ -138,6 +145,24 @@ body {
   /* Enhanced sidebar styling */
   .sidebar-enhanced {
     @apply bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/60;
+  }
+
+  /* Active sidebar item styling with primary color */
+  [data-sidebar="menu-button"][data-active="true"] {
+    @apply bg-primary text-primary-foreground font-medium;
+  }
+
+  [data-sidebar="menu-button"][data-active="true"]:hover {
+    @apply bg-primary/90 text-primary-foreground;
+  }
+
+  /* Focus rings for sidebar elements */
+  [data-sidebar="menu-button"]:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 outline-none;
+  }
+
+  [data-sidebar="input"]:focus-visible {
+    @apply ring-2 ring-primary;
   }
 }
 

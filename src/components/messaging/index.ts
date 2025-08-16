@@ -4,3 +4,6 @@ export { ConversationThread } from "./conversation-thread";
 export { MessageComposer } from "./message-composer";
 export { MessageSearch } from "./message-search";
 export { MessageNotifications } from "./message-notifications";
+export { ConversationListPane } from "./conversation-list-pane";
+export { ConversationListItem } from "./conversation-list-item";
+export { MessageThreadPane } from "./message-thread-pane";

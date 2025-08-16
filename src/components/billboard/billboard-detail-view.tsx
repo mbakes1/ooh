@@ -282,9 +282,9 @@ export function BillboardDetailView({
                         <button
                           key={image.id}
                           onClick={() => setSelectedImageIndex(index)}
-                          className={`flex-shrink-0 w-20 h-12 rounded overflow-hidden border-2 transition-all hover:border-blue-300 ${
+                          className={`flex-shrink-0 w-20 h-12 rounded overflow-hidden border-2 transition-all hover:border-primary/50 ${
                             selectedImageIndex === index
-                              ? "border-blue-500 ring-2 ring-blue-200"
+                              ? "border-primary ring-2 ring-primary/20"
                               : "border-gray-200"
                           }`}
                         >

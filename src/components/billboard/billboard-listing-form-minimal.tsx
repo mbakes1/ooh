@@ -92,11 +92,11 @@ export function BillboardListingFormMinimal({
   const validateCurrentStep = async () => {
     const fields = getFieldsForStep(currentStep);
     console.log("Validating fields for step", currentStep, ":", fields);
-    
+
     // Get current values for these fields
     const currentValues = form.getValues(fields);
     console.log("Current values:", currentValues);
-    
+
     const isValid = await form.trigger(fields);
     console.log("Validation result:", isValid);
 
@@ -109,7 +109,7 @@ export function BillboardListingFormMinimal({
         newSet.delete(currentStep);
         return newSet;
       });
-      
+
       // Log validation errors for debugging
       const errors = form.formState.errors;
       console.log("Validation failed for step:", currentStep);
@@ -153,7 +153,7 @@ export function BillboardListingFormMinimal({
     const isValid = await validateCurrentStep();
     console.log("Validation result for step", currentStep, ":", isValid);
     console.log("Form errors:", form.formState.errors);
-    
+
     if (isValid && currentStepIndex < steps.length - 1) {
       console.log("Moving to next step:", steps[currentStepIndex + 1].id);
       setCurrentStep(steps[currentStepIndex + 1].id);
@@ -181,16 +181,6 @@ export function BillboardListingFormMinimal({
 
   return (
     <div className={cn("max-w-4xl mx-auto space-y-8 pb-8", className)}>
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">
-          {isEditing ? "Edit Billboard Listing" : "Create Billboard Listing"}
-        </h1>
-        <p className="text-muted-foreground">
-          Follow the steps below to {isEditing ? "update" : "create"} your
-          billboard listing
-        </p>
-      </div>
-
       {/* Sticky Stepper */}
       <div className="sticky top-4 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-4 mb-8">
         <Stepper

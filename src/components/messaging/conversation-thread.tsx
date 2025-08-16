@@ -74,11 +74,13 @@ interface Conversation {
 interface ConversationThreadProps {
   conversationId: string;
   onBack?: () => void;
+  showHeader?: boolean;
 }
 
 export function ConversationThread({
   conversationId,
   onBack,
+  showHeader = true,
 }: ConversationThreadProps) {
   const { data: session } = useSession();
   const { socket } = useWebSocket();
@@ -327,112 +329,114 @@ export function ConversationThread({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Modern Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {onBack && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onBack}
-                className="h-10 w-10 p-0 hover:bg-muted"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </Button>
-            )}
-            <div className="relative">
-              <Avatar className="h-14 w-14 ring-2 ring-background shadow-lg">
-                <AvatarImage
-                  src={otherParticipant?.avatarUrl || ""}
-                  alt={otherParticipant?.name || "User"}
-                />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
-                  {otherParticipant?.name?.charAt(0)?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-background rounded-full shadow-sm"></div>
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-bold text-xl tracking-tight">
-                {otherParticipant?.name}
-              </h3>
-              <div className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "px-2 py-1 rounded-full text-xs font-medium",
-                    otherParticipant?.role === "OWNER"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-blue-100 text-blue-700"
-                  )}
-                >
-                  {otherParticipant?.role === "OWNER"
-                    ? "Billboard Owner"
-                    : "Advertiser"}
-                </div>
-                <div className="w-1 h-1 bg-muted-foreground/50 rounded-full"></div>
-                <span className="text-sm text-green-600 font-medium">
-                  Online
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Billboard Context */}
-        {conversation.billboard && (
-          <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-border/50 backdrop-blur-sm">
+      {/* Modern Header - only show if showHeader is true */}
+      {showHeader && (
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              {conversation.billboard.images[0] && (
-                <div className="relative">
-                  <Image
-                    src={conversation.billboard.images[0].imageUrl}
-                    alt={
-                      conversation.billboard.images[0].altText || "Billboard"
-                    }
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 object-cover rounded-xl shadow-md"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
-                </div>
+              {onBack && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onBack}
+                  className="h-10 w-10 p-0 hover:bg-muted"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </Button>
               )}
-              <div className="flex-1 min-w-0 space-y-1">
-                <h4 className="font-semibold text-foreground truncate">
-                  {conversation.billboard.title}
-                </h4>
-                <p className="text-sm text-muted-foreground truncate">
-                  {conversation.billboard.address},{" "}
-                  {conversation.billboard.city}
-                </p>
+              <div className="relative">
+                <Avatar className="h-14 w-14 ring-2 ring-background shadow-lg">
+                  <AvatarImage
+                    src={otherParticipant?.avatarUrl || ""}
+                    alt={otherParticipant?.name || "User"}
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                    {otherParticipant?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-background rounded-full shadow-sm"></div>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-xl tracking-tight">
+                  {otherParticipant?.name}
+                </h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-primary">
-                    {formatZAR(conversation.billboard.basePrice)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    per month
+                  <div
+                    className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium",
+                      otherParticipant?.role === "OWNER"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-blue-100 text-blue-700"
+                    )}
+                  >
+                    {otherParticipant?.role === "OWNER"
+                      ? "Billboard Owner"
+                      : "Advertiser"}
+                  </div>
+                  <div className="w-1 h-1 bg-muted-foreground/50 rounded-full"></div>
+                  <span className="text-sm text-green-600 font-medium">
+                    Online
                   </span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="shrink-0">
-                View Details
-              </Button>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Enhanced Billboard Context */}
+          {conversation.billboard && (
+            <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-border/50 backdrop-blur-sm">
+              <div className="flex items-center space-x-4">
+                {conversation.billboard.images[0] && (
+                  <div className="relative">
+                    <Image
+                      src={conversation.billboard.images[0].imageUrl}
+                      alt={
+                        conversation.billboard.images[0].altText || "Billboard"
+                      }
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 object-cover rounded-xl shadow-md"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <h4 className="font-semibold text-foreground truncate">
+                    {conversation.billboard.title}
+                  </h4>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {conversation.billboard.address},{" "}
+                    {conversation.billboard.city}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-primary">
+                      {formatZAR(conversation.billboard.basePrice)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      per month
+                    </span>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="shrink-0">
+                  View Details
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Enhanced Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-background to-muted/20">

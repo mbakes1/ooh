@@ -52,22 +52,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Messages",
         url: "/messages",
         icon: MessageSquare,
-        items: [
-          {
-            title: "Inbox",
-            url: "/messages",
-          },
-          {
-            title: "Sent",
-            url: "/messages/sent",
-          },
-        ],
       },
       {
         title: "Profile",
         url: "/profile",
         icon: Settings,
-        items: [],
       },
     ];
 
@@ -76,17 +65,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "My Billboards",
         url: "/dashboard/billboards",
         icon: Building2,
-        isActive: true,
-        items: [
-          {
-            title: "All Listings",
-            url: "/dashboard/billboards",
-          },
-          {
-            title: "Create New",
-            url: "/billboards/create",
-          },
-        ],
       },
     ];
 
@@ -95,8 +73,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Find Billboards",
         url: "/search",
         icon: Search,
-        isActive: true,
-        items: [],
       },
     ];
 
@@ -105,20 +81,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Administration",
         url: "/admin",
         icon: Shield,
-        items: [
-          {
-            title: "Dashboard",
-            url: "/admin",
-          },
-          {
-            title: "Users",
-            url: "/admin/users",
-          },
-          {
-            title: "Billboards",
-            url: "/admin/billboards",
-          },
-        ],
       },
     ];
 

@@ -49,7 +49,7 @@ export function SearchBar({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          className="pl-10 pr-20 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="pl-10 pr-20 border-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
         />
         <div className="absolute right-2 flex items-center gap-1">
           {value && (

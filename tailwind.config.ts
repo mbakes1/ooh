@@ -22,6 +22,7 @@ const config: Config = {
       fontFamily: {
         sans: [
           "var(--font-geist-sans)",
+          "var(--font-dm-sans)",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
