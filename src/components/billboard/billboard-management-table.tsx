@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -33,6 +33,7 @@ import {
   Power,
   PowerOff,
   MessageSquare,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -386,30 +387,38 @@ export function BillboardManagementTable({
 
   return (
     <>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <p className="text-muted-foreground">
+            Manage and monitor your billboard listings
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Select
+            value={currentStatusFilter}
+            onValueChange={onStatusFilterChange}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="INACTIVE">Inactive</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button asChild>
+            <Link href="/billboards/create">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Billboard
+            </Link>
+          </Button>
+        </div>
+      </div>
+
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Billboard Listings</CardTitle>
-            <div className="flex items-center space-x-4">
-              {/* Status Filter */}
-              <Select
-                value={currentStatusFilter}
-                onValueChange={onStatusFilterChange}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <DataTable
             columns={columns}
             data={billboards}
@@ -424,10 +433,20 @@ export function BillboardManagementTable({
 
           {billboards.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No billboards found.</p>
-              <Link href="/billboards/create">
-                <Button className="mt-4">Create Your First Billboard</Button>
-              </Link>
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">No billboards yet</h3>
+                  <p className="text-muted-foreground">
+                    Create your first billboard listing to get started
+                  </p>
+                </div>
+                <Link href="/billboards/create">
+                  <Button>Create Billboard</Button>
+                </Link>
+              </div>
             </div>
           )}
         </CardContent>

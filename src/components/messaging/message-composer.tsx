@@ -2,8 +2,7 @@
 
 import { useState, useRef, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Smile } from "lucide-react";
+import { Send, Paperclip, Mic, Plus, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -21,11 +20,11 @@ interface MessageComposerProps {
 export function MessageComposer({
   onSend,
   disabled = false,
-  placeholder = "Type your message...",
+  placeholder = "Ask me anything...",
   maxLength = 2000,
 }: MessageComposerProps) {
   const [content, setContent] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
@@ -33,7 +32,6 @@ export function MessageComposer({
 
     onSend(content);
     setContent("");
-    setIsExpanded(false);
 
     // Reset textarea height
     if (textareaRef.current) {
@@ -57,105 +55,125 @@ export function MessageComposer({
       const textarea = e.target;
       textarea.style.height = "auto";
       textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
-
-      // Expand composer if content is long
-      setIsExpanded(textarea.scrollHeight > 60);
     }
   };
 
-  const remainingChars = maxLength - content.length;
-  const isNearLimit = remainingChars < 100;
+  const handleStopGenerating = () => {
+    setIsGenerating(false);
+  };
+
+  const handleNewChat = () => {
+    setContent("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.focus();
+    }
+  };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-end space-x-2">
-        <div className="flex-1 relative">
-          <Textarea
-            ref={textareaRef}
-            value={content}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            className="min-h-[40px] max-h-[120px] resize-none pr-12"
-            style={{ height: "auto" }}
-          />
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-0">
+      {/* Top Controls */}
+      <div className="flex justify-between items-center mb-3">
+        <button
+          type="button"
+          onClick={handleNewChat}
+          className="inline-flex justify-center items-center gap-x-2 rounded-lg font-medium text-gray-800 hover:text-blue-600 focus:outline-none focus:text-blue-600 text-xs sm:text-sm transition-colors"
+        >
+          <Plus className="shrink-0 size-4" />
+          New chat
+        </button>
 
-          {/* Character count */}
-          {isNearLimit && (
-            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-              {remainingChars}
-            </div>
-          )}
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex items-center space-x-1">
-          {isExpanded && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    disabled={disabled}
-                  >
-                    <Paperclip className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Attach file (coming soon)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
-          {isExpanded && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    disabled={disabled}
-                  >
-                    <Smile className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add emoji (coming soon)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
-          <Button
-            onClick={handleSend}
-            disabled={disabled || !content.trim()}
-            size="sm"
-            className="h-8 w-8 p-0"
+        {isGenerating && (
+          <button
+            type="button"
+            onClick={handleStopGenerating}
+            className="py-1.5 px-2 inline-flex items-center gap-x-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
           >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+            <X className="size-3" />
+            Stop generating
+          </button>
+        )}
       </div>
 
-      {/* Formatting tips */}
-      {isExpanded && (
-        <div className="text-xs text-muted-foreground">
-          <p>
-            Press{" "}
-            <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Enter</kbd> to
-            send,
-            <kbd className="px-1 py-0.5 bg-muted rounded text-xs ml-1">
-              Shift + Enter
-            </kbd>{" "}
-            for new line
-          </p>
+      {/* Input Container */}
+      <div className="relative">
+        <textarea
+          ref={textareaRef}
+          value={content}
+          onChange={handleTextareaChange}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="p-3 sm:p-4 pb-12 sm:pb-12 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none resize-none min-h-[60px] max-h-[200px] transition-all duration-200"
+          style={{ height: "auto" }}
+        />
+
+        {/* Toolbar */}
+        <div className="absolute bottom-px inset-x-px p-2 rounded-b-lg bg-white">
+          <div className="flex flex-wrap justify-between items-center gap-2">
+            {/* Left Button Group */}
+            <div className="flex items-center">
+              {/* Attach Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      className="inline-flex shrink-0 justify-center items-center size-8 rounded-lg text-gray-500 hover:bg-gray-100 focus:z-10 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                    >
+                      <Paperclip className="shrink-0 size-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Attach file</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            {/* Right Button Group */}
+            <div className="flex items-center gap-x-1">
+              {/* Mic Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      className="inline-flex shrink-0 justify-center items-center size-8 rounded-lg text-gray-500 hover:bg-gray-100 focus:z-10 focus:outline-none focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                    >
+                      <Mic className="shrink-0 size-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Voice message</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Send Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={handleSend}
+                      disabled={disabled || !content.trim()}
+                      className="inline-flex shrink-0 justify-center items-center size-8 rounded-lg text-white bg-blue-600 hover:bg-blue-500 focus:z-10 focus:outline-none focus:bg-blue-500 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                    >
+                      <Send className="shrink-0 size-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Send message</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

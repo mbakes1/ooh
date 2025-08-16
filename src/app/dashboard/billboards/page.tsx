@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { UserRole } from "@prisma/client";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-import { BillboardManagementTableMinimal } from "@/components/billboard/billboard-management-table-minimal";
+import { BillboardManagementTable } from "@/components/billboard/billboard-management-table";
 
 interface BillboardWithAnalytics {
   id: string;
@@ -102,7 +102,7 @@ export default function BillboardsPage() {
       title="My Billboards"
       description="Manage and monitor your billboard listings"
     >
-      <BillboardManagementTableMinimal
+      <BillboardManagementTable
         billboards={billboards}
         pagination={{
           page: currentPage,
