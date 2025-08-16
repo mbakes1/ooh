@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useWebSocket } from "@/components/providers/websocket-provider";
+import Image from "next/image";
 import {
   joinConversation,
   leaveConversation,
@@ -161,7 +162,11 @@ export function ConversationThread({
       });
 
       // Listen for typing indicators
-      socket.on("typing" as any, (data: any) => {
+      const handleTyping = (data: {
+        conversationId: string;
+        userId: string;
+        isTyping: boolean;
+      }) => {
         if (
           data.conversationId === conversationId &&
           data.userId !== session?.user?.id
@@ -187,7 +192,9 @@ export function ConversationThread({
             }, 3000);
           }
         }
-      });
+      };
+
+      socket.on("typing" as any, handleTyping);
 
       return () => {
         socket.off("newMessage");
@@ -390,11 +397,13 @@ export function ConversationThread({
             <div className="flex items-center space-x-4">
               {conversation.billboard.images[0] && (
                 <div className="relative">
-                  <img
+                  <Image
                     src={conversation.billboard.images[0].imageUrl}
                     alt={
                       conversation.billboard.images[0].altText || "Billboard"
                     }
+                    width={64}
+                    height={64}
                     className="w-16 h-16 object-cover rounded-xl shadow-md"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>

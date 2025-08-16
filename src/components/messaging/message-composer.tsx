@@ -65,14 +65,6 @@ export function MessageComposer({
     setIsGenerating(false);
   };
 
-  const handleNewChat = () => {
-    setContent("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.focus();
-    }
-  };
-
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Enhanced Input Container */}
@@ -137,7 +129,7 @@ export function MessageComposer({
                       disabled={disabled}
                       className="h-8 w-8 p-0 hover:bg-muted"
                     >
-                      <Image className="h-4 w-4" />
+                      <Image className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -223,14 +215,8 @@ export function MessageComposer({
           <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
             <div className="flex gap-1">
               <div className="w-1 h-1 bg-primary rounded-full animate-bounce"></div>
-              <div
-                className="w-1 h-1 bg-primary rounded-full animate-bounce"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="w-1 h-1 bg-primary rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:100ms]"></div>
+              <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:200ms]"></div>
             </div>
             <span>Sending...</span>
           </div>
