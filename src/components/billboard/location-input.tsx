@@ -141,29 +141,35 @@ export function LocationInput({
       <div className="space-y-2">
         <Label htmlFor="province">Province *</Label>
         <Combobox
-          options={provinceOptions}
-          value={province}
-          onValueChange={onProvinceChange}
-          placeholder="Select a province"
-          searchPlaceholder="Search provinces..."
-          emptyText="No province found."
-        />
+            options={provinceOptions}
+            value={province}
+            onValueChange={(value) => {
+              console.log("Province changed to:", value);
+              onProvinceChange(value);
+            }}
+            placeholder="Select a province"
+            searchPlaceholder="Search provinces..."
+            emptyText="No province found."
+          />
       </div>
 
       {/* City Selection */}
       <div className="space-y-2">
         <Label htmlFor="city">City *</Label>
         <Combobox
-          options={cityOptions}
-          value={city}
-          onValueChange={onCityChange}
-          placeholder={province ? "Select a city" : "Select a province first"}
-          searchPlaceholder="Search cities..."
-          emptyText={
-            province ? "No city found." : "Please select a province first."
-          }
-          disabled={!province || cityOptions.length === 0}
-        />
+            options={cityOptions}
+            value={city}
+            onValueChange={(value) => {
+              console.log("City changed to:", value);
+              onCityChange(value);
+            }}
+            placeholder={province ? "Select a city" : "Select a province first"}
+            searchPlaceholder="Search cities..."
+            emptyText={
+              province ? "No city found." : "Please select a province first."
+            }
+            disabled={!province || cityOptions.length === 0}
+          />
       </div>
 
       {/* Address Input with Suggestions */}

@@ -30,11 +30,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log("Received request body:", body);
 
     // Validate the request body
     const validationResult = billboardListingSchema.safeParse(body);
+    console.log("Validation result:", validationResult);
 
     if (!validationResult.success) {
+      console.error("Validation failed:", validationResult.error.issues);
       return NextResponse.json(
         {
           error: "Validation failed",
@@ -45,6 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = validationResult.data;
+    console.log("Validated data:", data);
 
     // Create the billboard listing
     const billboard = await prisma.billboard.create({

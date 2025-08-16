@@ -25,15 +25,18 @@ export function PricingInput({
   onBasePriceChange,
   className,
 }: PricingInputProps) {
+  console.log("PricingInput props:", { basePrice });
   const [displayValue, setDisplayValue] = useState(
     basePrice > 0 ? formatZAR(basePrice) : ""
   );
 
   const handlePriceChange = (value: string) => {
+    console.log("Price changed to:", value);
     setDisplayValue(value);
 
     // Parse the numeric value
     const numericValue = parseZAR(value);
+    console.log("Parsed numeric value:", numericValue);
     onBasePriceChange(numericValue);
   };
 

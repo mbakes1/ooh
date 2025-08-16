@@ -35,6 +35,7 @@ export function ImageUpload({
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      console.log("onDrop called with files:", acceptedFiles);
       if (previews.length + acceptedFiles.length > maxImages) {
         alert(`Maximum ${maxImages} images allowed`);
         return;
@@ -50,26 +51,33 @@ export function ImageUpload({
           // Create preview URL
           const previewUrl = URL.createObjectURL(file);
           newPreviews.push({ url: previewUrl, file });
+          console.log("Created preview URL:", previewUrl);
 
           // Upload to Cloudinary
           const formData = new FormData();
           formData.append("file", file);
 
+          console.log("Uploading file to /api/upload:", file.name);
           const response = await fetch("/api/upload", {
             method: "POST",
             body: formData,
           });
 
+          console.log("Upload response status:", response.status);
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Upload failed with response:", errorText);
             throw new Error("Failed to upload image");
           }
 
           const { url } = await response.json();
+          console.log("Upload successful, received URL:", url);
           newUrls.push(url);
         }
 
         setPreviews((prev) => [...prev, ...newPreviews]);
         onImagesChange([...images, ...newUrls]);
+        console.log("Images updated:", [...images, ...newUrls]);
       } catch (error) {
         console.error("Error uploading images:", error);
         alert("Failed to upload images. Please try again.");
@@ -90,11 +98,13 @@ export function ImageUpload({
   });
 
   const removeImage = (index: number) => {
+    console.log("Removing image at index:", index);
     const newPreviews = previews.filter((_, i) => i !== index);
     const newImages = images.filter((_, i) => i !== index);
 
     setPreviews(newPreviews);
     onImagesChange(newImages);
+    console.log("Updated images array:", newImages);
   };
 
   const updateAltText = (index: number, altText: string) => {

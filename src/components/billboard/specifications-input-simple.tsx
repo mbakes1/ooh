@@ -16,8 +16,8 @@ interface SpecificationsInputSimpleProps {
   width: number;
   height: number;
   resolution: string;
-  brightness: number;
-  viewingDistance: number;
+  brightness: number | undefined;
+  viewingDistance: number | undefined;
   trafficLevel: TrafficLevel | "";
   onWidthChange: (width: number) => void;
   onHeightChange: (height: number) => void;
@@ -43,15 +43,29 @@ export function SpecificationsInputSimple({
   onTrafficLevelChange,
   className,
 }: SpecificationsInputSimpleProps) {
+  console.log("SpecificationsInputSimple props:", {
+    width,
+    height,
+    resolution,
+    brightness,
+    viewingDistance,
+    trafficLevel,
+  });
   const handleNumberInput = (
     value: string,
-    onChange: (num: number) => void
+    onChange: (num: number | undefined) => void
   ) => {
+    console.log("Number input changed to:", value);
+    if (value === "") {
+      console.log("Setting number to undefined");
+      onChange(undefined);
+      return;
+    }
+    
     const num = parseFloat(value);
     if (!isNaN(num) && num >= 0) {
+      console.log("Setting number to:", num);
       onChange(num);
-    } else if (value === "") {
-      onChange(0);
     }
   };
 
@@ -66,7 +80,9 @@ export function SpecificationsInputSimple({
             type="number"
             placeholder="6.0"
             value={width || ""}
-            onChange={(e) => handleNumberInput(e.target.value, onWidthChange)}
+            onChange={(e) => handleNumberInput(e.target.value, (num) => {
+              if (num !== undefined) onWidthChange(num);
+            })}
             min="0.1"
             step="0.1"
           />
@@ -79,7 +95,9 @@ export function SpecificationsInputSimple({
             type="number"
             placeholder="3.0"
             value={height || ""}
-            onChange={(e) => handleNumberInput(e.target.value, onHeightChange)}
+            onChange={(e) => handleNumberInput(e.target.value, (num) => {
+              if (num !== undefined) onHeightChange(num);
+            })}
             min="0.1"
             step="0.1"
           />
@@ -89,7 +107,10 @@ export function SpecificationsInputSimple({
       {/* Resolution */}
       <div className="space-y-2">
         <Label htmlFor="resolution">Display Resolution *</Label>
-        <Select value={resolution} onValueChange={onResolutionChange}>
+        <Select value={resolution || ""} onValueChange={(value) => {
+          console.log("Resolution changed to:", value);
+          onResolutionChange(value);
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Select resolution" />
           </SelectTrigger>
@@ -107,16 +128,16 @@ export function SpecificationsInputSimple({
       <div className="space-y-2">
         <Label htmlFor="brightness">Brightness (nits)</Label>
         <Input
-          id="brightness"
-          type="number"
-          placeholder="5000"
-          value={brightness || ""}
-          onChange={(e) =>
-            handleNumberInput(e.target.value, onBrightnessChange)
-          }
-          min="1000"
-          step="100"
-        />
+            id="brightness"
+            type="number"
+            placeholder="5000"
+            value={brightness || ""}
+            onChange={(e) =>
+              handleNumberInput(e.target.value, onBrightnessChange)
+            }
+            min="1000"
+            step="100"
+          />
         <p className="text-sm text-muted-foreground">
           Typical range: 1000-10000 nits
         </p>
@@ -126,15 +147,15 @@ export function SpecificationsInputSimple({
       <div className="space-y-2">
         <Label htmlFor="viewingDistance">Viewing Distance (meters)</Label>
         <Input
-          id="viewingDistance"
-          type="number"
-          placeholder="50"
-          value={viewingDistance || ""}
-          onChange={(e) =>
-            handleNumberInput(e.target.value, onViewingDistanceChange)
-          }
-          min="1"
-        />
+            id="viewingDistance"
+            type="number"
+            placeholder="50"
+            value={viewingDistance || ""}
+            onChange={(e) =>
+              handleNumberInput(e.target.value, onViewingDistanceChange)
+            }
+            min="1"
+          />
         <p className="text-sm text-muted-foreground">
           Average distance viewers will be from the billboard
         </p>
@@ -144,12 +165,13 @@ export function SpecificationsInputSimple({
       <div className="space-y-2">
         <Label htmlFor="trafficLevel">Traffic Level</Label>
         <Select
-          value={trafficLevel}
-          onValueChange={(value) =>
+          value={trafficLevel || ""}
+          onValueChange={(value) => {
+            console.log("Traffic level changed to:", value);
             onTrafficLevelChange(
               value === "" ? undefined : (value as TrafficLevel)
-            )
-          }
+            );
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select traffic level" />

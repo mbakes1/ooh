@@ -78,6 +78,7 @@ export function BillboardListingFormMinimal({
   const currentStepIndex = steps.findIndex((step) => step.id === currentStep);
 
   const handleSubmit = async (data: BillboardListingInput) => {
+    console.log("Form submit handler called with data:", data);
     setIsSubmitting(true);
     try {
       await onSubmit(data);
@@ -90,16 +91,31 @@ export function BillboardListingFormMinimal({
 
   const validateCurrentStep = async () => {
     const fields = getFieldsForStep(currentStep);
+    console.log("Validating fields for step", currentStep, ":", fields);
+    
+    // Get current values for these fields
+    const currentValues = form.getValues(fields);
+    console.log("Current values:", currentValues);
+    
     const isValid = await form.trigger(fields);
+    console.log("Validation result:", isValid);
 
     if (isValid) {
       setCompletedSteps((prev) => new Set([...prev, currentStep]));
+      console.log("Step marked as completed:", currentStep);
     } else {
       setCompletedSteps((prev) => {
         const newSet = new Set(prev);
         newSet.delete(currentStep);
         return newSet;
       });
+      
+      // Log validation errors for debugging
+      const errors = form.formState.errors;
+      console.log("Validation failed for step:", currentStep);
+      console.log("Fields being validated:", fields);
+      console.log("Current form values:", currentValues);
+      console.log("Form errors:", errors);
     }
 
     return isValid;
@@ -108,6 +124,7 @@ export function BillboardListingFormMinimal({
   const getFieldsForStep = (
     stepId: string
   ): (keyof BillboardListingInput)[] => {
+    console.log("Getting fields for step:", stepId);
     switch (stepId) {
       case "basic":
         return ["title", "description"];
@@ -132,9 +149,18 @@ export function BillboardListingFormMinimal({
   };
 
   const goToNextStep = async () => {
+    console.log("Attempting to go to next step from:", currentStep);
     const isValid = await validateCurrentStep();
+    console.log("Validation result for step", currentStep, ":", isValid);
+    console.log("Form errors:", form.formState.errors);
+    
     if (isValid && currentStepIndex < steps.length - 1) {
+      console.log("Moving to next step:", steps[currentStepIndex + 1].id);
       setCurrentStep(steps[currentStepIndex + 1].id);
+    } else if (!isValid) {
+      console.log("Cannot proceed to next step due to validation errors");
+    } else {
+      console.log("Already at last step");
     }
   };
 
@@ -145,6 +171,7 @@ export function BillboardListingFormMinimal({
   };
 
   const goToStep = async (stepId: string) => {
+    console.log("Attempting to go to step:", stepId);
     await validateCurrentStep();
     setCurrentStep(stepId);
   };

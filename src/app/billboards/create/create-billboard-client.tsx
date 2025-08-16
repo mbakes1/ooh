@@ -9,6 +9,7 @@ export function CreateBillboardClient() {
   const router = useRouter();
 
   const handleSubmit = async (data: BillboardListingInput) => {
+    console.log("Form submission started with data:", data);
     try {
       const response = await fetch("/api/billboards", {
         method: "POST",
@@ -18,14 +19,17 @@ export function CreateBillboardClient() {
         body: JSON.stringify(data),
       });
 
+      console.log("API response status:", response.status);
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("API error response:", errorData);
         throw new Error(
           errorData.error || "Failed to create billboard listing"
         );
       }
 
       const result = await response.json();
+      console.log("API success response:", result);
 
       toast.success("Billboard listing created successfully!", {
         description:
