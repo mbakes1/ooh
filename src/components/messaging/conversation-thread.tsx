@@ -8,11 +8,18 @@ import {
   leaveConversation,
   markMessageAsRead,
 } from "@/lib/websocket/client";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageComposer } from "./message-composer";
 import { formatDistanceToNow } from "date-fns";
-import { Check, CheckCheck, MoreVertical, Trash2 } from "lucide-react";
+import {
+  Check,
+  CheckCheck,
+  MoreVertical,
+  Trash2,
+  MessageCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -313,8 +320,8 @@ export function ConversationThread({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="border-b bg-white/80 backdrop-blur-sm p-6">
+      {/* Modern Header */}
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {onBack && (
@@ -322,114 +329,170 @@ export function ConversationThread({
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
-                className="hover:bg-gray-100"
+                className="h-10 w-10 p-0 hover:bg-muted"
               >
-                ←
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
               </Button>
             )}
             <div className="relative">
-              <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
-                <img
-                  src={otherParticipant?.avatarUrl || "/default-avatar.png"}
+              <Avatar className="h-14 w-14 ring-2 ring-background shadow-lg">
+                <AvatarImage
+                  src={otherParticipant?.avatarUrl || ""}
                   alt={otherParticipant?.name || "User"}
-                  className="rounded-full object-cover"
                 />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                  {otherParticipant?.name?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-background rounded-full shadow-sm"></div>
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 text-lg">
+            <div className="space-y-1">
+              <h3 className="font-bold text-xl tracking-tight">
                 {otherParticipant?.name}
               </h3>
-              <p className="text-sm text-gray-500">
-                {otherParticipant?.role === "OWNER"
-                  ? "Billboard Owner"
-                  : "Advertiser"}
-              </p>
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "px-2 py-1 rounded-full text-xs font-medium",
+                    otherParticipant?.role === "OWNER"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-blue-100 text-blue-700"
+                  )}
+                >
+                  {otherParticipant?.role === "OWNER"
+                    ? "Billboard Owner"
+                    : "Advertiser"}
+                </div>
+                <div className="w-1 h-1 bg-muted-foreground/50 rounded-full"></div>
+                <span className="text-sm text-green-600 font-medium">
+                  Online
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Billboard Info - Simplified */}
+        {/* Enhanced Billboard Context */}
         {conversation.billboard && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="flex items-center space-x-3">
+          <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-border/50 backdrop-blur-sm">
+            <div className="flex items-center space-x-4">
               {conversation.billboard.images[0] && (
-                <img
-                  src={conversation.billboard.images[0].imageUrl}
-                  alt={conversation.billboard.images[0].altText || "Billboard"}
-                  className="w-12 h-12 object-cover rounded-lg shadow-sm"
-                />
+                <div className="relative">
+                  <img
+                    src={conversation.billboard.images[0].imageUrl}
+                    alt={
+                      conversation.billboard.images[0].altText || "Billboard"
+                    }
+                    className="w-16 h-16 object-cover rounded-xl shadow-md"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
+                </div>
               )}
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-gray-900 truncate">
+              <div className="flex-1 min-w-0 space-y-1">
+                <h4 className="font-semibold text-foreground truncate">
                   {conversation.billboard.title}
                 </h4>
-                <p className="text-sm text-gray-500 truncate">
+                <p className="text-sm text-muted-foreground truncate">
                   {conversation.billboard.address},{" "}
                   {conversation.billboard.city}
                 </p>
-                <p className="text-sm font-semibold text-blue-600">
-                  {formatZAR(conversation.billboard.basePrice)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-primary">
+                    {formatZAR(conversation.billboard.basePrice)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    per month
+                  </span>
+                </div>
               </div>
+              <Button variant="outline" size="sm" className="shrink-0">
+                View Details
+              </Button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/30">
+      {/* Enhanced Messages Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-background to-muted/20">
         {conversation.messages.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <div className="text-center space-y-6 max-w-sm">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <MessageCircle className="h-10 w-10 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold">
+                  Start the conversation
+                </h3>
+                <p className="text-muted-foreground">
+                  Send your first message to begin discussing this billboard
+                  opportunity
+                </p>
+              </div>
             </div>
-            <p className="text-gray-500 text-lg font-medium">No messages yet</p>
-            <p className="text-gray-400 text-sm mt-1">
-              Start the conversation!
-            </p>
           </div>
         ) : (
-          conversation.messages.map((message) => {
+          conversation.messages.map((message, index) => {
             const isOwn = message.sender.id === session?.user?.id;
+            const prevMessage = conversation.messages[index - 1];
+            const showAvatar =
+              !prevMessage || prevMessage.sender.id !== message.sender.id;
+            const isConsecutive =
+              prevMessage && prevMessage.sender.id === message.sender.id;
 
             return (
               <div
                 key={message.id}
-                className={`flex items-end space-x-3 ${isOwn ? "justify-end" : "justify-start"}`}
+                className={cn(
+                  "flex items-end space-x-3 animate-in",
+                  isOwn ? "justify-end" : "justify-start",
+                  isConsecutive && "mt-1"
+                )}
               >
                 {!isOwn && (
-                  <Avatar className="h-8 w-8 ring-2 ring-white shadow-sm">
-                    <img
-                      src={message.sender.avatarUrl || "/default-avatar.png"}
-                      alt={message.sender.name}
-                      className="rounded-full object-cover"
-                    />
-                  </Avatar>
+                  <div className="w-8 h-8 flex items-end">
+                    {showAvatar && (
+                      <Avatar className="h-8 w-8 ring-2 ring-background shadow-sm">
+                        <AvatarImage
+                          src={message.sender.avatarUrl || ""}
+                          alt={message.sender.name}
+                        />
+                        <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                          {message.sender.name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
                 )}
 
-                <div className={`max-w-[75%] ${isOwn ? "order-1" : "order-2"}`}>
+                <div
+                  className={cn(
+                    "max-w-[75%] space-y-1",
+                    isOwn ? "order-1" : "order-2"
+                  )}
+                >
                   <div
-                    className={`relative px-4 py-3 rounded-2xl shadow-sm ${
+                    className={cn(
+                      "relative px-4 py-3 shadow-sm transition-all duration-200",
                       isOwn
-                        ? "bg-blue-600 text-white rounded-br-md"
-                        : "bg-white text-gray-900 border border-gray-100 rounded-bl-md"
-                    }`}
+                        ? "bg-primary text-primary-foreground rounded-2xl rounded-br-md hover:shadow-md"
+                        : "bg-card text-card-foreground border rounded-2xl rounded-bl-md hover:shadow-md hover:border-border/80"
+                    )}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                         {message.content}
                       </p>
@@ -439,7 +502,7 @@ export function ConversationThread({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 w-6 p-0 ml-2 opacity-70 hover:opacity-100 text-white hover:bg-blue-700"
+                              className="h-6 w-6 p-0 opacity-0 hover:opacity-100 transition-opacity shrink-0"
                             >
                               <MoreVertical className="h-3 w-3" />
                             </Button>
@@ -459,19 +522,22 @@ export function ConversationThread({
                   </div>
 
                   <div
-                    className={`flex items-center mt-1 space-x-2 ${isOwn ? "justify-end" : "justify-start"}`}
+                    className={cn(
+                      "flex items-center space-x-2 px-1",
+                      isOwn ? "justify-end" : "justify-start"
+                    )}
                   >
-                    <p className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(message.createdAt), {
                         addSuffix: true,
                       })}
-                    </p>
+                    </span>
                     {isOwn && (
                       <div className="flex items-center">
                         {message.readAt ? (
-                          <CheckCheck className="h-3 w-3 text-blue-500" />
+                          <CheckCheck className="h-3 w-3 text-primary" />
                         ) : (
-                          <Check className="h-3 w-3 text-gray-400" />
+                          <Check className="h-3 w-3 text-muted-foreground" />
                         )}
                       </div>
                     )}
@@ -484,12 +550,13 @@ export function ConversationThread({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Composer */}
-      <div className="border-t bg-white/80 backdrop-blur-sm p-6">
+      {/* Enhanced Message Composer */}
+      <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6">
         <MessageComposer
           onSend={handleSendMessage}
           disabled={sending}
-          placeholder="Type your message..."
+          sending={sending}
+          placeholder={`Message ${otherParticipant?.name}...`}
         />
       </div>
     </div>
