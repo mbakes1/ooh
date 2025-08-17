@@ -4,6 +4,10 @@ import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, X } from "lucide-react";
+import {
+  useFileNotifications,
+  useUserNotifications,
+} from "@/hooks/use-notifications";
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string | null;
@@ -23,6 +27,8 @@ export function AvatarUpload({
     currentAvatarUrl || null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileNotifications = useFileNotifications();
+  const userNotifications = useUserNotifications();
 
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -32,17 +38,18 @@ export function AvatarUpload({
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
+      fileNotifications.fileTypeError();
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB");
+      fileNotifications.fileSizeError();
       return;
     }
 
     setIsUploading(true);
+    fileNotifications.uploadStart("profile picture");
 
     try {
       // Create preview URL for immediate feedback
@@ -71,13 +78,16 @@ export function AvatarUpload({
       // Update with the Cloudinary URL
       setPreviewUrl(result.url);
       onAvatarChange(result.url);
+
+      userNotifications.avatarUpdateSuccess();
     } catch (error) {
       console.error("Upload failed:", error);
-      alert(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "Failed to upload image. Please try again."
-      );
+          : "Failed to upload image. Please try again.";
+
+      fileNotifications.uploadError("profile picture", errorMessage);
 
       // Revert to original avatar on error
       setPreviewUrl(currentAvatarUrl || null);

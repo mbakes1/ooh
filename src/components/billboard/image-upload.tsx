@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useFileNotifications } from "@/hooks/use-notifications";
 
 interface ImageUploadProps {
   images: string[];
@@ -32,12 +33,13 @@ export function ImageUpload({
     images.map((url) => ({ url }))
   );
   const [uploading, setUploading] = useState(false);
+  const fileNotifications = useFileNotifications();
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       console.log("onDrop called with files:", acceptedFiles);
       if (previews.length + acceptedFiles.length > maxImages) {
-        alert(`Maximum ${maxImages} images allowed`);
+        fileNotifications.fileSizeError();
         return;
       }
 
@@ -48,6 +50,9 @@ export function ImageUpload({
         const newUrls: string[] = [];
 
         for (const file of acceptedFiles) {
+          // Show upload start notification
+          fileNotifications.uploadStart(file.name);
+
           // Create preview URL
           const previewUrl = URL.createObjectURL(file);
           newPreviews.push({ url: previewUrl, file });
@@ -67,12 +72,16 @@ export function ImageUpload({
           if (!response.ok) {
             const errorText = await response.text();
             console.error("Upload failed with response:", errorText);
+            fileNotifications.uploadError(file.name, "Failed to upload image");
             throw new Error("Failed to upload image");
           }
 
           const { url } = await response.json();
           console.log("Upload successful, received URL:", url);
           newUrls.push(url);
+
+          // Show success notification
+          fileNotifications.uploadSuccess(file.name);
         }
 
         setPreviews((prev) => [...prev, ...newPreviews]);
@@ -80,12 +89,12 @@ export function ImageUpload({
         console.log("Images updated:", [...images, ...newUrls]);
       } catch (error) {
         console.error("Error uploading images:", error);
-        alert("Failed to upload images. Please try again.");
+        // Individual file errors are handled above, this is for general errors
       } finally {
         setUploading(false);
       }
     },
-    [images, onImagesChange, maxImages, previews.length]
+    [images, onImagesChange, maxImages, previews.length, fileNotifications]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -95,6 +104,17 @@ export function ImageUpload({
     },
     maxSize: 5 * 1024 * 1024, // 5MB
     disabled: uploading || previews.length >= maxImages,
+    onDropRejected: (fileRejections) => {
+      fileRejections.forEach((rejection) => {
+        if (rejection.errors.some((error) => error.code === "file-too-large")) {
+          fileNotifications.fileSizeError();
+        } else if (
+          rejection.errors.some((error) => error.code === "file-invalid-type")
+        ) {
+          fileNotifications.fileTypeError();
+        }
+      });
+    },
   });
 
   const removeImage = (index: number) => {

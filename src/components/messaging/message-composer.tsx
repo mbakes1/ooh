@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useMessageNotifications } from "@/hooks/use-notifications";
 
 interface MessageComposerProps {
   onSend: (content: string) => void;
@@ -17,6 +18,7 @@ interface MessageComposerProps {
   placeholder?: string;
   maxLength?: number;
   sending?: boolean;
+  showNotifications?: boolean;
 }
 
 export function MessageComposer({
@@ -25,20 +27,37 @@ export function MessageComposer({
   placeholder = "Ask me anything...",
   maxLength = 2000,
   sending = false,
+  showNotifications = true,
 }: MessageComposerProps) {
   const [content, setContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messageNotifications = useMessageNotifications();
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!content.trim() || disabled) return;
 
-    onSend(content);
+    const messageContent = content;
     setContent("");
 
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
+    }
+
+    try {
+      await onSend(messageContent);
+      if (showNotifications) {
+        messageNotifications.sendSuccess();
+      }
+    } catch (error) {
+      if (showNotifications) {
+        messageNotifications.sendError(
+          error instanceof Error ? error.message : "Failed to send message"
+        );
+      }
+      // Restore content on error
+      setContent(messageContent);
     }
   };
 

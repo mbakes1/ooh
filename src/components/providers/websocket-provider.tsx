@@ -14,6 +14,7 @@ import {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "@/lib/websocket/server";
+import { useSystemNotifications } from "@/hooks/use-notifications";
 
 interface WebSocketContextType {
   socket: Socket<ServerToClientEvents, ClientToServerEvents> | null;
@@ -47,12 +48,18 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   > | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const systemNotifications = useSystemNotifications();
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.id) {
       // For development, simulate WebSocket connection
       console.log("Initializing real-time features...");
-      setIsConnected(true);
+
+      // Simulate connection process
+      setTimeout(() => {
+        setIsConnected(true);
+        systemNotifications.connectionRestored();
+      }, 1000);
 
       // Create a mock socket object for compatibility
       const mockSocket = {
@@ -69,13 +76,28 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
       setSocket(mockSocket);
 
+      // Simulate occasional connection issues for demo
+      const connectionInterval = setInterval(() => {
+        if (Math.random() < 0.05) {
+          // 5% chance of connection issue
+          setIsConnected(false);
+          systemNotifications.connectionLost();
+
+          setTimeout(() => {
+            setIsConnected(true);
+            systemNotifications.connectionRestored();
+          }, 2000);
+        }
+      }, 30000); // Check every 30 seconds
+
       return () => {
+        clearInterval(connectionInterval);
         setSocket(null);
         setIsConnected(false);
         setOnlineUsers(new Set());
       };
     }
-  }, [session, status]);
+  }, [session, status, systemNotifications]);
 
   return (
     <WebSocketContext.Provider value={{ socket, isConnected, onlineUsers }}>

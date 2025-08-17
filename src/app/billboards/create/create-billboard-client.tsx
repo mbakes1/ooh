@@ -1,16 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { BillboardListingFormMinimal } from "@/components/billboard/billboard-listing-form-minimal";
 import { type BillboardListingInput } from "@/lib/validations/billboard";
+import { useBillboardNotifications } from "@/hooks/use-notifications";
 
 export function CreateBillboardClient() {
   const router = useRouter();
+  const billboardNotifications = useBillboardNotifications();
 
   const handleSubmit = async (data: BillboardListingInput) => {
     console.log("Form submission started with data:", data);
-    try {
+
+    const createBillboardPromise = async () => {
       const response = await fetch("/api/billboards", {
         method: "POST",
         headers: {
@@ -30,20 +32,21 @@ export function CreateBillboardClient() {
 
       const result = await response.json();
       console.log("API success response:", result);
+      return result;
+    };
 
-      toast.success("Billboard listing created successfully!", {
-        description:
-          "Your listing is now pending review and will be published once approved.",
-      });
+    try {
+      const result = await createBillboardPromise();
+
+      billboardNotifications.createSuccess(data.title);
 
       // Redirect to the billboard detail page or dashboard
       router.push(`/billboards/${result.billboard.id}`);
     } catch (error) {
       console.error("Error creating billboard:", error);
-      toast.error("Failed to create billboard listing", {
-        description:
-          error instanceof Error ? error.message : "Please try again later.",
-      });
+      billboardNotifications.createError(
+        error instanceof Error ? error.message : "Please try again later."
+      );
     }
   };
 

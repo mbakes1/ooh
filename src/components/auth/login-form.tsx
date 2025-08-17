@@ -21,6 +21,7 @@ import { ErrorAlert } from "@/components/ui/error-alert";
 import { RealTimeForm } from "@/components/ui/real-time-form";
 import { EnhancedFormField } from "@/components/ui/enhanced-form-field";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+import { useAuthNotifications } from "@/hooks/use-notifications";
 
 interface LoginFormProps {
   callbackUrl?: string;
@@ -30,6 +31,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const authNotifications = useAuthNotifications();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -52,13 +54,18 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        const errorMessage = "Invalid email or password. Please try again.";
+        setError(errorMessage);
+        authNotifications.loginError(errorMessage);
       } else {
+        authNotifications.loginSuccess();
         router.push(callbackUrl || "/");
         router.refresh();
       }
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      const errorMessage = "An unexpected error occurred. Please try again.";
+      setError(errorMessage);
+      authNotifications.loginError(errorMessage);
     } finally {
       setIsLoading(false);
     }

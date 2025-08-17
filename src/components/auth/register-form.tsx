@@ -33,12 +33,14 @@ import {
 import { ErrorAlert } from "@/components/ui/error-alert";
 import { RealTimeForm } from "@/components/ui/real-time-form";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
+import { useAuthNotifications } from "@/hooks/use-notifications";
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const authNotifications = useAuthNotifications();
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -77,15 +79,18 @@ export function RegisterForm() {
       }
 
       setSuccess(true);
+      authNotifications.registrationSuccess();
+
       setTimeout(() => {
         router.push(
           "/auth/login?message=Registration successful. Please sign in."
         );
       }, 2000);
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
+      authNotifications.registrationError(errorMessage);
     } finally {
       setIsLoading(false);
     }

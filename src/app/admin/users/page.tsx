@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { UserManagement } from "@/components/admin/user-management";
 import { User } from "@prisma/client";
+import { useAdminNotifications } from "@/hooks/use-notifications";
 
 interface UserWithCounts extends User {
   _count?: {
@@ -19,6 +20,7 @@ export default function AdminUsersPage() {
   const { data: session, status } = useSession();
   const [users, setUsers] = useState<UserWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
+  const adminNotifications = useAdminNotifications();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -52,6 +54,8 @@ export default function AdminUsersPage() {
         method: "POST",
       });
       if (response.ok) {
+        const user = users.find((u) => u.id === userId);
+        adminNotifications.userPromoted(user?.name || "User");
         fetchUsers();
       }
     } catch (error) {
@@ -65,6 +69,8 @@ export default function AdminUsersPage() {
         method: "POST",
       });
       if (response.ok) {
+        const user = users.find((u) => u.id === userId);
+        adminNotifications.userBanned(user?.name || "User");
         fetchUsers();
       }
     } catch (error) {
@@ -78,6 +84,7 @@ export default function AdminUsersPage() {
         method: "DELETE",
       });
       if (response.ok) {
+        adminNotifications.contentModerated();
         fetchUsers();
       }
     } catch (error) {
