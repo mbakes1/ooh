@@ -1,7 +1,8 @@
 "use client";
 
 import { toast } from "sonner";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Confetti from "react-confetti";
 import {
   CheckCircle,
   XCircle,
@@ -61,6 +62,50 @@ interface NotificationConfig {
   options?: NotificationOptions;
 }
 
+// Confetti component for notifications
+const ConfettiNotification = ({ title, description, icon: IconComponent }) => {
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(() => setShowConfetti(false), 5000); // Confetti for 5 seconds
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <div className="flex items-center">
+      {showConfetti && (
+        <Confetti
+          width={dimensions.width}
+          height={dimensions.height}
+          recycle={false}
+          numberOfPieces={200}
+        />
+      )}
+      {IconComponent && <IconComponent className="h-4 w-4 mr-2" />}
+      <div>
+        <div className="font-semibold">{title}</div>
+        {description && <div className="text-sm">{description}</div>}
+      </div>
+    </div>
+  );
+};
+
 // Core notification function
 export function notify(config: NotificationConfig) {
   const { title, type, options = {} } = config;
@@ -86,6 +131,19 @@ export function notify(config: NotificationConfig) {
 
   switch (type) {
     case "success":
+      // Special handler for login success to show confetti
+      if (title.toLowerCase().includes("welcome back")) {
+        return toast.custom(
+          () => (
+            <ConfettiNotification
+              title={title}
+              description={description}
+              icon={CustomIcon || CheckCircle}
+            />
+          ),
+          { ...baseOptions }
+        );
+      }
       return toast.success(title, {
         ...baseOptions,
         icon: CustomIcon
@@ -149,10 +207,11 @@ export const notifications = {
     loginSuccess: (username?: string) =>
       notify({
         title: `Welcome back${username ? `, ${username}` : ""}!`,
-        type: "success",
+        type: "success", // This will be handled by our custom logic
         options: {
           icon: User,
           description: "You have been successfully logged in.",
+          duration: 5000,
         },
       }),
 
