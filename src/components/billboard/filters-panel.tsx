@@ -67,11 +67,11 @@ export function FiltersPanel({ filters, onApply }: FiltersPanelProps) {
               Province
             </Label>
             <Select
-              value={localFilters.province || ""}
+              value={localFilters.province || "all"}
               onValueChange={(value) =>
                 setLocalFilters((prev) => ({
                   ...prev,
-                  province: value || undefined,
+                  province: value === "all" ? undefined : value,
                 }))
               }
             >
@@ -79,7 +79,7 @@ export function FiltersPanel({ filters, onApply }: FiltersPanelProps) {
                 <SelectValue placeholder="Any province" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any province</SelectItem>
+                <SelectItem value="all">Any province</SelectItem>
                 {SOUTH_AFRICAN_PROVINCES.map((province) => (
                   <SelectItem key={province} value={province}>
                     {province}
@@ -162,11 +162,12 @@ export function FiltersPanel({ filters, onApply }: FiltersPanelProps) {
         <h3 className="font-medium">Traffic Level</h3>
 
         <Select
-          value={localFilters.trafficLevel || ""}
+          value={localFilters.trafficLevel || "all"}
           onValueChange={(value) =>
             setLocalFilters((prev) => ({
               ...prev,
-              trafficLevel: (value as TrafficLevel) || undefined,
+              trafficLevel:
+                value === "all" ? undefined : (value as TrafficLevel),
             }))
           }
         >
@@ -174,7 +175,7 @@ export function FiltersPanel({ filters, onApply }: FiltersPanelProps) {
             <SelectValue placeholder="Any traffic level" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Any traffic level</SelectItem>
+            <SelectItem value="all">Any traffic level</SelectItem>
             <SelectItem value="HIGH">High Traffic</SelectItem>
             <SelectItem value="MEDIUM">Medium Traffic</SelectItem>
             <SelectItem value="LOW">Low Traffic</SelectItem>

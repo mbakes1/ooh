@@ -1,95 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { UserManagement } from "@/components/admin/user-management";
-import { User } from "@prisma/client";
-import { useAdminNotifications } from "@/hooks/use-notifications";
-
-interface UserWithCounts extends User {
-  _count?: {
-    billboards: number;
-    sentMessages: number;
-    receivedMessages: number;
-  };
-}
+import {
+  useAdminUsers,
+  useVerifyUser,
+  useSuspendUser,
+  useDeleteUser,
+} from "@/hooks/use-admin-users";
 
 export default function AdminUsersPage() {
   const { data: session, status } = useSession();
-  const [users, setUsers] = useState<UserWithCounts[]>([]);
-  const [loading, setLoading] = useState(true);
-  const adminNotifications = useAdminNotifications();
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/auth/login");
-    }
-    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
-      redirect("/dashboard");
-    }
-    if (status === "authenticated") {
-      fetchUsers();
-    }
-  }, [status, session]);
+  // TanStack Query hooks
+  const { data: users = [], isLoading, error } = useAdminUsers();
+  const verifyMutation = useVerifyUser();
+  const suspendMutation = useSuspendUser();
+  const deleteMutation = useDeleteUser();
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/admin/users");
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Authentication checks
+  if (status === "unauthenticated") {
+    redirect("/auth/login");
+  }
+  if (status === "authenticated" && session?.user?.role !== "ADMIN") {
+    redirect("/dashboard");
+  }
+
+  const handleVerifyUser = (userId: string) => {
+    verifyMutation.mutate(userId);
   };
 
-  const handleVerifyUser = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/verify`, {
-        method: "POST",
-      });
-      if (response.ok) {
-        const user = users.find((u) => u.id === userId);
-        adminNotifications.userPromoted(user?.name || "User");
-        fetchUsers();
-      }
-    } catch (error) {
-      console.error("Failed to verify user:", error);
-    }
+  const handleSuspendUser = (userId: string) => {
+    suspendMutation.mutate(userId);
   };
 
-  const handleSuspendUser = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/suspend`, {
-        method: "POST",
-      });
-      if (response.ok) {
-        const user = users.find((u) => u.id === userId);
-        adminNotifications.userBanned(user?.name || "User");
-        fetchUsers();
-      }
-    } catch (error) {
-      console.error("Failed to suspend user:", error);
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        adminNotifications.contentModerated();
-        fetchUsers();
-      }
-    } catch (error) {
-      console.error("Failed to delete user:", error);
-    }
+  const handleDeleteUser = (userId: string) => {
+    deleteMutation.mutate(userId);
   };
 
   const handleSendMessage = (userId: string) => {
@@ -97,7 +45,7 @@ export default function AdminUsersPage() {
     window.location.href = `/messages?user=${userId}`;
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading" || isLoading) {
     return (
       <DashboardLayout
         breadcrumbs={[
@@ -107,6 +55,29 @@ export default function AdminUsersPage() {
       >
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout
+        breadcrumbs={[
+          { label: "Administration", href: "/admin" },
+          { label: "Users" },
+        ]}
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load users</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </DashboardLayout>
     );

@@ -10,10 +10,27 @@ export const initializeWebSocketClient = () => {
     return socket;
   }
 
-  // For development, we'll use a mock socket that uses polling
+  // Initialize real WebSocket connection
   socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL || window.location.origin, {
     autoConnect: false,
-    transports: ["polling"], // Use polling instead of websockets for now
+    transports: ["websocket", "polling"], // Prefer websockets, fallback to polling
+    upgrade: true,
+    rememberUpgrade: true,
+    timeout: 20000,
+    forceNew: false,
+  });
+
+  // Add connection event handlers
+  socket.on("connect", () => {
+    console.log("✅ WebSocket connected:", socket?.id);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("❌ WebSocket disconnected:", reason);
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error("🔴 WebSocket connection error:", error);
   });
 
   return socket;
@@ -23,9 +40,24 @@ export const getWebSocketClient = () => {
   return socket;
 };
 
-export const connectWebSocket = () => {
+export const connectWebSocket = (userId?: string) => {
   if (socket && !socket.connected) {
+    // Set up authentication handler before connecting
+    if (userId) {
+      const handleConnect = () => {
+        console.log("🔐 Authenticating user:", userId);
+        socket.emit("authenticate", { userId });
+        socket.off("connect", handleConnect); // Remove this specific handler
+      };
+
+      socket.on("connect", handleConnect);
+    }
+
     socket.connect();
+  } else if (socket && socket.connected && userId) {
+    // If already connected, authenticate immediately
+    console.log("🔐 Authenticating already connected user:", userId);
+    socket.emit("authenticate", { userId });
   }
 };
 

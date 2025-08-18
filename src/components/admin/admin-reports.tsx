@@ -155,16 +155,19 @@ export function AdminReports({ onGenerateReport }: AdminReportsProps) {
             <div key={filter} className="space-y-2">
               <Label htmlFor="role-filter">User Role</Label>
               <Select
-                value={filters.role || ""}
+                value={filters.role || "all"}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, role: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    role: value === "all" ? "" : value,
+                  }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All roles</SelectItem>
+                  <SelectItem value="all">All roles</SelectItem>
                   <SelectItem value="OWNER">Billboard Owners</SelectItem>
                   <SelectItem value="ADVERTISER">Advertisers</SelectItem>
                   <SelectItem value="ADMIN">Administrators</SelectItem>
@@ -178,16 +181,19 @@ export function AdminReports({ onGenerateReport }: AdminReportsProps) {
             <div key={filter} className="space-y-2">
               <Label htmlFor="status-filter">Billboard Status</Label>
               <Select
-                value={filters.status || ""}
+                value={filters.status || "all"}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, status: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    status: value === "all" ? "" : value,
+                  }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="REJECTED">Rejected</SelectItem>
@@ -202,16 +208,19 @@ export function AdminReports({ onGenerateReport }: AdminReportsProps) {
             <div key={filter} className="space-y-2">
               <Label htmlFor="province-filter">Province</Label>
               <Select
-                value={filters.province || ""}
+                value={filters.province || "all"}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, province: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    province: value === "all" ? "" : value,
+                  }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All provinces" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All provinces</SelectItem>
+                  <SelectItem value="all">All provinces</SelectItem>
                   <SelectItem value="Gauteng">Gauteng</SelectItem>
                   <SelectItem value="Western Cape">Western Cape</SelectItem>
                   <SelectItem value="KwaZulu-Natal">KwaZulu-Natal</SelectItem>
@@ -231,16 +240,19 @@ export function AdminReports({ onGenerateReport }: AdminReportsProps) {
             <div key={filter} className="space-y-2">
               <Label htmlFor="verified-filter">Verification Status</Label>
               <Select
-                value={filters.verified || ""}
+                value={filters.verified || "all"}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, verified: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    verified: value === "all" ? "" : value,
+                  }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All users" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All users</SelectItem>
+                  <SelectItem value="all">All users</SelectItem>
                   <SelectItem value="true">Verified only</SelectItem>
                   <SelectItem value="false">Unverified only</SelectItem>
                 </SelectContent>
@@ -253,16 +265,19 @@ export function AdminReports({ onGenerateReport }: AdminReportsProps) {
             <div key={filter} className="space-y-2">
               <Label htmlFor="traffic-filter">Traffic Level</Label>
               <Select
-                value={filters.traffic_level || ""}
+                value={filters.traffic_level || "all"}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, traffic_level: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    traffic_level: value === "all" ? "" : value,
+                  }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All traffic levels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All traffic levels</SelectItem>
+                  <SelectItem value="all">All traffic levels</SelectItem>
                   <SelectItem value="HIGH">High Traffic</SelectItem>
                   <SelectItem value="MEDIUM">Medium Traffic</SelectItem>
                   <SelectItem value="LOW">Low Traffic</SelectItem>

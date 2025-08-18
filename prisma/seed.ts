@@ -153,25 +153,25 @@ async function main() {
     data: [
       {
         billboardId: billboard1.id,
-        imageUrl: "https://example.com/billboard1-main.jpg",
+        imageUrl: "/placeholder-billboard.jpg",
         altText: "N1 Highway Billboard Main View",
         isPrimary: true,
       },
       {
         billboardId: billboard1.id,
-        imageUrl: "https://example.com/billboard1-side.jpg",
+        imageUrl: "/placeholder-billboard.jpg",
         altText: "N1 Highway Billboard Side View",
         isPrimary: false,
       },
       {
         billboardId: billboard2.id,
-        imageUrl: "https://example.com/billboard2-main.jpg",
+        imageUrl: "/placeholder-billboard.jpg",
         altText: "Sandton CBD Billboard Main View",
         isPrimary: true,
       },
       {
         billboardId: billboard3.id,
-        imageUrl: "https://example.com/billboard3-main.jpg",
+        imageUrl: "/placeholder-billboard.jpg",
         altText: "Shopping Mall Billboard Main View",
         isPrimary: true,
       },

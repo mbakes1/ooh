@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, MapPin, Grid3X3, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,25 +21,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { BillboardWithDetails, TrafficLevel } from "@/types";
+import { TrafficLevel } from "@/types";
 import { BillboardGrid } from "@/components/billboard/billboard-grid";
 import { FiltersPanel } from "@/components/billboard/filters-panel";
 import { Pagination } from "@/components/billboard/pagination";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-
-interface SearchResponse {
-  billboards: BillboardWithDetails[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasMore: boolean;
-  };
-  filters: {
-    resultsCount: number;
-  };
-}
+import { useSearchBillboards } from "@/hooks/use-search-billboards";
 
 interface SearchFilters {
   city?: string;
@@ -54,7 +41,6 @@ interface SearchFilters {
 }
 
 function SearchPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // State
@@ -79,101 +65,37 @@ function SearchPageContent() {
     parseInt(searchParams.get("page") || "1")
   );
 
-  // Results state
-  const [results, setResults] = useState<SearchResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Update URL with current search parameters
-  const updateURL = useCallback(
-    (params: Record<string, string | number | undefined>) => {
-      const url = new URL(window.location.href);
-      url.search = "";
-
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== "" && value !== null) {
-          url.searchParams.set(key, value.toString());
-        }
-      });
-
-      router.push(url.pathname + url.search, { scroll: false });
-    },
-    [router]
-  );
-
-  // Perform search
-  const performSearch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const searchParams = new URLSearchParams();
-
-      if (searchQuery) searchParams.set("query", searchQuery);
-      if (filters.city) searchParams.set("city", filters.city);
-      if (filters.province) searchParams.set("province", filters.province);
-      if (filters.minPrice)
-        searchParams.set("minPrice", filters.minPrice.toString());
-      if (filters.maxPrice)
-        searchParams.set("maxPrice", filters.maxPrice.toString());
-      if (filters.trafficLevel)
-        searchParams.set("trafficLevel", filters.trafficLevel);
-
-      searchParams.set("sortBy", sortBy);
-      searchParams.set("page", currentPage.toString());
-      searchParams.set("limit", "12");
-
-      const response = await fetch(
-        `/api/billboards/search?${searchParams.toString()}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to search billboards");
-      }
-
-      const data: SearchResponse = await response.json();
-      setResults(data);
-
-      updateURL({
-        q: searchQuery,
-        ...filters,
-        sortBy,
-        page: currentPage,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  }, [searchQuery, filters, sortBy, currentPage, updateURL]);
-
-  // Initial search on mount
-  useEffect(() => {
-    performSearch();
-  }, [performSearch]);
+  // TanStack Query hook
+  const { data: results, isLoading, error, refetch } = useSearchBillboards({
+    query: searchQuery,
+    filters,
+    sortBy,
+    page: currentPage,
+    limit: 12,
+  });
 
   // Handlers
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
-    performSearch();
+    refetch();
   };
 
   const handleFiltersApply = (newFilters: SearchFilters) => {
     setFilters(newFilters);
     setCurrentPage(1);
-    performSearch();
+    refetch();
   };
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
     setCurrentPage(1);
-    performSearch();
+    refetch();
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    performSearch();
+    refetch();
   };
 
   return (
@@ -273,7 +195,7 @@ function SearchPageContent() {
 
         {/* Results */}
         <div className="space-y-8">
-          {loading ? (
+          {isLoading ? (
             <BillboardGrid loading={true} viewMode={viewMode} />
           ) : error ? (
             <div className="text-center py-16">
@@ -283,9 +205,9 @@ function SearchPageContent() {
                   <h3 className="text-lg font-medium mb-2">
                     Something went wrong
                   </h3>
-                  <p>{error}</p>
+                  <p>Failed to search billboards</p>
                 </div>
-                <Button onClick={performSearch} variant="outline">
+                <Button onClick={() => refetch()} variant="outline">
                   Try Again
                 </Button>
               </div>

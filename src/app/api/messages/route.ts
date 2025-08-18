@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { sendMessageNotification } from "@/lib/email";
 import { NotificationService } from "@/lib/notifications/service";
-import { emitNewMessage } from "@/lib/websocket/server";
+import { emitNewMessage } from "@/lib/websocket/manager";
 
 const sendMessageSchema = z.object({
   conversationId: z.string(),
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         senderName: message.sender.name,
         messageContent: message.content,
         billboardTitle: updatedConversation.billboard?.title,
-        conversationUrl: `${process.env.NEXTAUTH_URL?.split(',')[0] || 'http://localhost:3000'}/messages`,
+        conversationUrl: `${process.env.NEXTAUTH_URL?.split(",")[0] || "http://localhost:3000"}/messages`,
       });
     } catch (error) {
       console.error("Failed to send email notification:", error);

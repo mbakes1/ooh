@@ -1,82 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { ProfileCompletion } from "@/components/profile/profile-completion";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { type ProfileUpdateInput } from "@/lib/validations/auth";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "OWNER" | "ADVERTISER";
-  businessName?: string | null;
-  contactNumber?: string | null;
-  location?: string | null;
-  verified: boolean;
-  avatarUrl?: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import { useUserProfile, useUpdateProfile } from "@/hooks/use-user-profile";
+import { useState } from "react";
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-      return;
-    }
+  // TanStack Query hooks
+  const {
+    data: user,
+    isLoading,
+    error,
+    refetch,
+  } = useUserProfile();
+  const updateProfileMutation = useUpdateProfile();
 
-    if (status === "authenticated") {
-      fetchUserProfile();
-    }
-  }, [status, router]);
-
-  const fetchUserProfile = async () => {
-    try {
-      const response = await fetch("/api/user/profile");
-      if (!response.ok) {
-        throw new Error("Failed to fetch profile");
-      }
-      const data = await response.json();
-      setUser(data.user);
-    } catch (err) {
-      setError("Failed to load profile. Please try again.");
-      console.error("Profile fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Authentication check
+  if (status === "unauthenticated") {
+    router.push("/auth/login");
+    return null;
+  }
 
   const handleProfileUpdate = async (data: ProfileUpdateInput) => {
     try {
-      setError(null);
-      setSuccessMessage(null);
-
-      const response = await fetch("/api/user/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update profile");
-      }
-
-      const result = await response.json();
-      setUser(result.user);
+      const result = await updateProfileMutation.mutateAsync(data);
+      
       setSuccessMessage("Profile updated successfully!");
 
       // Update the session with new user data
@@ -92,12 +48,12 @@ export default function ProfilePage() {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update profile");
+      // Error is handled by the mutation's error state
       console.error("Profile update error:", err);
     }
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -108,13 +64,13 @@ export default function ProfilePage() {
     );
   }
 
-  if (error && !user) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">Failed to load profile. Please try again.</p>
           <button
-            onClick={fetchUserProfile}
+            onClick={() => refetch()}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Try Again
@@ -139,9 +95,11 @@ export default function ProfilePage() {
         )}
 
         {/* Error Message */}
-        {error && (
+        {updateProfileMutation.error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
+            {updateProfileMutation.error instanceof Error 
+              ? updateProfileMutation.error.message 
+              : "Failed to update profile"}
           </div>
         )}
 

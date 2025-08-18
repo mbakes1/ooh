@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent } from "react";
-import { Send, Paperclip, Mic, Smile, Image, X } from "lucide-react";
+import { useState, useRef, KeyboardEvent, useEffect } from "react";
+import { Send, Paperclip, Smile, Image, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { useMessageNotifications } from "@/hooks/use-notifications";
 
 interface MessageComposerProps {
-  onSend: (content: string) => void;
+  onSend: (content: string, attachments?: File[]) => void;
   disabled?: boolean;
   placeholder?: string;
   maxLength?: number;
@@ -24,21 +24,26 @@ interface MessageComposerProps {
 export function MessageComposer({
   onSend,
   disabled = false,
-  placeholder = "Ask me anything...",
+  placeholder = "Type your message...",
   maxLength = 2000,
   sending = false,
   showNotifications = true,
 }: MessageComposerProps) {
   const [content, setContent] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const messageNotifications = useMessageNotifications();
 
   const handleSend = async () => {
-    if (!content.trim() || disabled) return;
+    if ((!content.trim() && attachments.length === 0) || disabled) return;
 
     const messageContent = content;
+    const messageAttachments = [...attachments];
     setContent("");
+    setAttachments([]);
 
     // Reset textarea height
     if (textareaRef.current) {
@@ -46,7 +51,7 @@ export function MessageComposer({
     }
 
     try {
-      await onSend(messageContent);
+      await onSend(messageContent, messageAttachments);
       if (showNotifications) {
         messageNotifications.sendSuccess();
       }
@@ -58,8 +63,63 @@ export function MessageComposer({
       }
       // Restore content on error
       setContent(messageContent);
+      setAttachments(messageAttachments);
     }
   };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setAttachments((prev) => [...prev, ...files]);
+    event.target.value = ""; // Reset input
+  };
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    setAttachments((prev) => [...prev, ...imageFiles]);
+    event.target.value = ""; // Reset input
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const insertEmoji = (emoji: string) => {
+    setContent((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+    textareaRef.current?.focus();
+  };
+
+  // Common emojis for quick access
+  const commonEmojis = [
+    "😀",
+    "😂",
+    "😍",
+    "🤔",
+    "👍",
+    "👎",
+    "❤️",
+    "🎉",
+    "😢",
+    "😮",
+    "🔥",
+    "💯",
+  ];
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showEmojiPicker &&
+        !(event.target as Element)?.closest(".emoji-picker-container")
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showEmojiPicker]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -78,10 +138,6 @@ export function MessageComposer({
       textarea.style.height = "auto";
       textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     }
-  };
-
-  const handleStopGenerating = () => {
-    setIsGenerating(false);
   };
 
   return (
@@ -117,10 +173,40 @@ export function MessageComposer({
             </div>
           )}
 
+          {/* Attachments Preview */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 p-2 border-t bg-muted/20">
+              {attachments.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-background rounded px-2 py-1 text-sm"
+                >
+                  <span className="truncate max-w-32">{file.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeAttachment(index)}
+                    className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Enhanced Toolbar */}
           <div className="flex items-center justify-between p-2 border-t bg-muted/30">
             {/* Left Actions */}
             <div className="flex items-center gap-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+                accept=".pdf,.doc,.docx,.txt,.zip,.rar"
+              />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -128,6 +214,7 @@ export function MessageComposer({
                       variant="ghost"
                       size="sm"
                       disabled={disabled}
+                      onClick={() => fileInputRef.current?.click()}
                       className="h-8 w-8 p-0 hover:bg-muted"
                     >
                       <Paperclip className="h-4 w-4" />
@@ -139,6 +226,14 @@ export function MessageComposer({
                 </Tooltip>
               </TooltipProvider>
 
+              <input
+                ref={imageInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleImageSelect}
+                accept="image/*"
+              />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -146,6 +241,7 @@ export function MessageComposer({
                       variant="ghost"
                       size="sm"
                       disabled={disabled}
+                      onClick={() => imageInputRef.current?.click()}
                       className="h-8 w-8 p-0 hover:bg-muted"
                     >
                       <Image className="h-4 w-4" aria-hidden="true" />
@@ -157,63 +253,58 @@ export function MessageComposer({
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={disabled}
-                      className="h-8 w-8 p-0 hover:bg-muted"
-                    >
-                      <Smile className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add emoji</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="relative">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={disabled}
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="h-8 w-8 p-0 hover:bg-muted"
+                      >
+                        <Smile className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add emoji</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Simple Emoji Picker */}
+                {showEmojiPicker && (
+                  <div className="emoji-picker-container absolute bottom-full left-0 mb-2 bg-background border rounded-lg shadow-lg p-2 z-50">
+                    <div className="grid grid-cols-6 gap-1">
+                      {commonEmojis.map((emoji, index) => (
+                        <Button
+                          key={index}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => insertEmoji(emoji)}
+                          className="h-8 w-8 p-0 hover:bg-muted text-lg"
+                        >
+                          {emoji}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right Actions */}
             <div className="flex items-center gap-2">
-              {isGenerating && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStopGenerating}
-                  className="h-8 gap-2 text-xs"
-                >
-                  <X className="h-3 w-3" />
-                  Stop
-                </Button>
-              )}
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={disabled}
-                      className="h-8 w-8 p-0 hover:bg-muted"
-                    >
-                      <Mic className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Voice message</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       onClick={handleSend}
-                      disabled={disabled || !content.trim()}
+                      disabled={
+                        disabled ||
+                        (!content.trim() && attachments.length === 0)
+                      }
                       size="sm"
                       className="h-8 w-8 p-0 shadow-sm"
                     >

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -428,6 +429,10 @@ export function BillboardDetailClean({
                         <DialogContent className="max-w-md">
                           <DialogHeader>
                             <DialogTitle>Send Inquiry</DialogTitle>
+                            <DialogDescription>
+                              Send an inquiry to the billboard owner about
+                              advertising opportunities.
+                            </DialogDescription>
                           </DialogHeader>
                           <form
                             onSubmit={handleInquirySubmit}

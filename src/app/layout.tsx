@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth/session-provider";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { WebSocketProvider } from "@/components/providers/websocket-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -25,6 +26,11 @@ export const metadata: Metadata = {
   title: "Digital Billboard Marketplace",
   description:
     "Connect digital billboard owners with advertisers in South Africa",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -39,10 +45,12 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <AuthProvider>
-          <WebSocketProvider>
-            <div className="min-h-screen">{children}</div>
-            <ToastProvider />
-          </WebSocketProvider>
+          <QueryProvider>
+            <WebSocketProvider>
+              <div className="min-h-screen">{children}</div>
+              <ToastProvider />
+            </WebSocketProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

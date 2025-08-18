@@ -1,8 +1,9 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
+import jwt from "jsonwebtoken";
+import { NextApiRequest } from "next";
+import { getToken } from "next-auth/jwt";
 
 export interface ServerToClientEvents {
   newMessage: (data: {
@@ -53,6 +54,7 @@ export interface InterServerEvents {
 export interface SocketData {
   userId: string;
   userEmail: string;
+  userName?: string;
 }
 
 let io: SocketIOServer<
@@ -82,105 +84,120 @@ export const initializeWebSocket = (server: HTTPServer) => {
   // Store online users
   const onlineUsers = new Map<string, string>(); // userId -> socketId
 
-  io.on("connection", async (socket) => {
-    console.log("Client connected:", socket.id);
-
-    // Authenticate the socket connection
+  io.use(async (socket, next) => {
     try {
-      const session = await getServerSession(authOptions);
-      if (!session?.user?.id) {
-        socket.disconnect();
-        return;
+      // Get the user ID from the handshake auth (simplified approach)
+      const userId = socket.handshake.auth.userId;
+
+      if (!userId) {
+        return next(new Error("User ID required"));
       }
 
-      socket.data.userId = session.user.id;
-      socket.data.userEmail = session.user.email!;
-
-      // Track online user
-      onlineUsers.set(session.user.id, socket.id);
-      socket.broadcast.emit("userOnline", { userId: session.user.id });
-
-      console.log(`User ${session.user.id} connected`);
-
-      // Join user to their personal room for notifications
-      socket.join(`user:${session.user.id}`);
-
-      // Handle joining conversation rooms
-      socket.on("joinRoom", async ({ conversationId }) => {
-        try {
-          // Verify user is part of the conversation
-          const conversation = await prisma.conversation.findFirst({
-            where: {
-              id: conversationId,
-              participants: {
-                some: {
-                  id: socket.data.userId,
-                },
-              },
-            },
-          });
-
-          if (conversation) {
-            socket.join(`conversation:${conversationId}`);
-            console.log(
-              `User ${socket.data.userId} joined conversation ${conversationId}`
-            );
-          }
-        } catch (error) {
-          console.error("Error joining room:", error);
-        }
+      // Get user from database to verify they exist
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, name: true },
       });
 
-      // Handle leaving conversation rooms
-      socket.on("leaveRoom", ({ conversationId }) => {
-        socket.leave(`conversation:${conversationId}`);
-        console.log(
-          `User ${socket.data.userId} left conversation ${conversationId}`
-        );
-      });
+      if (!user) {
+        return next(new Error("User not found"));
+      }
 
-      // Handle marking messages as read
-      socket.on("markMessageRead", async ({ messageId, conversationId }) => {
-        try {
-          const message = await prisma.message.update({
-            where: {
-              id: messageId,
-              recipientId: socket.data.userId,
-            },
-            data: {
-              readAt: new Date(),
-            },
-          });
+      socket.data.userId = user.id;
+      socket.data.userEmail = user.email!;
+      socket.data.userName = user.name;
 
-          // Notify the sender that their message was read
-          socket.to(`conversation:${conversationId}`).emit("messageRead", {
-            messageId,
-            conversationId,
-            readAt: message.readAt!.toISOString(),
-          });
-        } catch (error) {
-          console.error("Error marking message as read:", error);
-        }
-      });
-
-      // Handle typing indicators
-      socket.on("typing", ({ conversationId, isTyping }) => {
-        socket.to(`conversation:${conversationId}`).emit("typing" as any, {
-          userId: socket.data.userId,
-          isTyping,
-        });
-      });
-
-      // Handle disconnection
-      socket.on("disconnect", () => {
-        console.log(`User ${socket.data.userId} disconnected`);
-        onlineUsers.delete(socket.data.userId);
-        socket.broadcast.emit("userOffline", { userId: socket.data.userId });
-      });
+      next();
     } catch (error) {
       console.error("Socket authentication error:", error);
-      socket.disconnect();
+      next(new Error("Authentication failed"));
     }
+  });
+
+  io.on("connection", async (socket) => {
+    console.log("Client connected:", socket.id, "User:", socket.data.userId);
+
+    // Track online user
+    onlineUsers.set(socket.data.userId, socket.id);
+    socket.broadcast.emit("userOnline", { userId: socket.data.userId });
+
+    console.log(`User ${socket.data.userId} connected`);
+
+    // Join user to their personal room for notifications
+    socket.join(`user:${socket.data.userId}`);
+
+    // Handle joining conversation rooms
+    socket.on("joinRoom", async ({ conversationId }) => {
+      try {
+        // Verify user is part of the conversation
+        const conversation = await prisma.conversation.findFirst({
+          where: {
+            id: conversationId,
+            participants: {
+              some: {
+                id: socket.data.userId,
+              },
+            },
+          },
+        });
+
+        if (conversation) {
+          socket.join(`conversation:${conversationId}`);
+          console.log(
+            `User ${socket.data.userId} joined conversation ${conversationId}`
+          );
+        }
+      } catch (error) {
+        console.error("Error joining room:", error);
+      }
+    });
+
+    // Handle leaving conversation rooms
+    socket.on("leaveRoom", ({ conversationId }) => {
+      socket.leave(`conversation:${conversationId}`);
+      console.log(
+        `User ${socket.data.userId} left conversation ${conversationId}`
+      );
+    });
+
+    // Handle marking messages as read
+    socket.on("markMessageRead", async ({ messageId, conversationId }) => {
+      try {
+        const message = await prisma.message.update({
+          where: {
+            id: messageId,
+            recipientId: socket.data.userId,
+          },
+          data: {
+            readAt: new Date(),
+          },
+        });
+
+        // Notify the sender that their message was read
+        socket.to(`conversation:${conversationId}`).emit("messageRead", {
+          messageId,
+          conversationId,
+          readAt: message.readAt!.toISOString(),
+        });
+      } catch (error) {
+        console.error("Error marking message as read:", error);
+      }
+    });
+
+    // Handle typing indicators
+    socket.on("typing", ({ conversationId, isTyping }) => {
+      socket.to(`conversation:${conversationId}`).emit("typing" as any, {
+        userId: socket.data.userId,
+        isTyping,
+      });
+    });
+
+    // Handle disconnection
+    socket.on("disconnect", () => {
+      console.log(`User ${socket.data.userId} disconnected`);
+      onlineUsers.delete(socket.data.userId);
+      socket.broadcast.emit("userOffline", { userId: socket.data.userId });
+    });
   });
 
   return io;

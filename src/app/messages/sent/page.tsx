@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useSentMessages } from "@/hooks/use-sent-messages";
 
 interface SentMessage {
   id: string;
@@ -28,34 +28,14 @@ interface SentMessage {
 
 export default function SentMessagesPage() {
   const { data: session, status } = useSession();
-  const [sentMessages, setSentMessages] = useState<SentMessage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/auth/login");
-    }
-    if (status === "authenticated") {
-      fetchSentMessages();
-    }
-  }, [status]);
+  // TanStack Query hook
+  const { data: sentMessages = [], isLoading, error, refetch } = useSentMessages();
 
-  const fetchSentMessages = async () => {
-    try {
-      const response = await fetch("/api/messages/sent");
-      if (response.ok) {
-        const data = await response.json();
-        setSentMessages(data.messages || []);
-      } else {
-        throw new Error("Failed to fetch sent messages");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Authentication checks
+  if (status === "unauthenticated") {
+    redirect("/auth/login");
+  }
 
   const getRecipient = (message: SentMessage) => {
     return message.conversation.participants.find(
@@ -63,7 +43,7 @@ export default function SentMessagesPage() {
     );
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading" || isLoading) {
     return (
       <DashboardLayout
         breadcrumbs={[
@@ -98,8 +78,8 @@ export default function SentMessagesPage() {
         {error ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-destructive mb-4">{error}</p>
-              <Button variant="outline" onClick={fetchSentMessages}>
+              <p className="text-destructive mb-4">Failed to load sent messages</p>
+              <Button variant="outline" onClick={() => refetch()}>
                 Try Again
               </Button>
             </CardContent>

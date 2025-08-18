@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -692,6 +693,10 @@ export function BillboardDetailView({
                           <MessageSquare className="h-5 w-5 mr-2" />
                           Send Inquiry to {billboard.owner.name}
                         </DialogTitle>
+                        <DialogDescription>
+                          Send an inquiry about advertising opportunities on
+                          this billboard.
+                        </DialogDescription>
                       </DialogHeader>
                       <form
                         onSubmit={handleInquirySubmit}
@@ -799,6 +804,10 @@ export function BillboardDetailView({
                           <Calendar className="h-5 w-5 mr-2" />
                           Availability Calendar
                         </DialogTitle>
+                        <DialogDescription>
+                          Check available dates for advertising on this
+                          billboard.
+                        </DialogDescription>
                       </DialogHeader>
                       <div>
                         {/* Calendar Header */}

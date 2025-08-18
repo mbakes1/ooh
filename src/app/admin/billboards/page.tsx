@@ -1,98 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { BillboardModeration } from "@/components/admin/billboard-moderation";
-import { Billboard } from "@prisma/client";
+import {
+  useAdminBillboards,
+  useApproveBillboard,
+  useRejectBillboard,
+  useSuspendBillboard,
+} from "@/hooks/use-admin-billboards";
 
 export default function AdminBillboardsPage() {
   const { data: session, status } = useSession();
-  const [billboards, setBillboards] = useState<Billboard[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/auth/login");
-    }
-    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
-      redirect("/dashboard");
-    }
-    if (status === "authenticated") {
-      fetchBillboards();
-    }
-  }, [status, session]);
+  // TanStack Query hooks
+  const { data: billboards = [], isLoading, error } = useAdminBillboards();
+  const approveMutation = useApproveBillboard();
+  const rejectMutation = useRejectBillboard();
+  const suspendMutation = useSuspendBillboard();
 
-  const fetchBillboards = async () => {
-    try {
-      const response = await fetch("/api/admin/billboards");
-      if (response.ok) {
-        const data = await response.json();
-        setBillboards(data.billboards || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch billboards:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Authentication checks
+  if (status === "unauthenticated") {
+    redirect("/auth/login");
+  }
+  if (status === "authenticated" && session?.user?.role !== "ADMIN") {
+    redirect("/dashboard");
+  }
+
+  const handleApproveBillboard = (billboardId: string) => {
+    approveMutation.mutate(billboardId);
   };
 
-  const handleApproveBillboard = async (billboardId: string) => {
-    try {
-      const response = await fetch(
-        `/api/admin/billboards/${billboardId}/approve`,
-        {
-          method: "POST",
-        }
-      );
-      if (response.ok) {
-        fetchBillboards();
-      }
-    } catch (error) {
-      console.error("Failed to approve billboard:", error);
-    }
-  };
-
-  const handleRejectBillboard = async (billboardId: string, reason: string) => {
-    try {
-      const response = await fetch(
-        `/api/admin/billboards/${billboardId}/reject`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reason }),
-        }
-      );
-      if (response.ok) {
-        fetchBillboards();
-      }
-    } catch (error) {
-      console.error("Failed to reject billboard:", error);
-    }
+  const handleRejectBillboard = (billboardId: string, reason: string) => {
+    rejectMutation.mutate({ billboardId, reason });
   };
 
   const handleViewBillboard = (billboardId: string) => {
     window.open(`/billboards/${billboardId}`, "_blank");
   };
 
-  const handleSuspendBillboard = async (billboardId: string) => {
-    try {
-      const response = await fetch(
-        `/api/admin/billboards/${billboardId}/suspend`,
-        {
-          method: "POST",
-        }
-      );
-      if (response.ok) {
-        fetchBillboards();
-      }
-    } catch (error) {
-      console.error("Failed to suspend billboard:", error);
-    }
+  const handleSuspendBillboard = (billboardId: string) => {
+    suspendMutation.mutate(billboardId);
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading" || isLoading) {
     return (
       <DashboardLayout
         breadcrumbs={[
@@ -102,6 +54,29 @@ export default function AdminBillboardsPage() {
       >
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout
+        breadcrumbs={[
+          { label: "Administration", href: "/admin" },
+          { label: "Billboards" },
+        ]}
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load billboards</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </DashboardLayout>
     );
