@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent, useEffect } from "react";
-import { Send, Paperclip, Smile, Image, X } from "lucide-react";
+import { useState, useRef, KeyboardEvent } from "react";
+import { Send, Paperclip, Image, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -31,7 +31,6 @@ export function MessageComposer({
 }: MessageComposerProps) {
   const [content, setContent] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -84,43 +83,6 @@ export function MessageComposer({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const insertEmoji = (emoji: string) => {
-    setContent((prev) => prev + emoji);
-    setShowEmojiPicker(false);
-    textareaRef.current?.focus();
-  };
-
-  // Common emojis for quick access
-  const commonEmojis = [
-    "😀",
-    "😂",
-    "😍",
-    "🤔",
-    "👍",
-    "👎",
-    "❤️",
-    "🎉",
-    "😢",
-    "😮",
-    "🔥",
-    "💯",
-  ];
-
-  // Close emoji picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        showEmojiPicker &&
-        !(event.target as Element)?.closest(".emoji-picker-container")
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showEmojiPicker]);
-
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -161,7 +123,7 @@ export function MessageComposer({
             className={cn(
               "w-full resize-none border-0 bg-transparent px-4 py-3 text-sm",
               "placeholder:text-muted-foreground focus:outline-none",
-              "min-h-[52px] max-h-[200px] pr-16"
+              "min-h-[52px] max-h-[200px]"
             )}
             style={{ height: "auto" }}
           />
@@ -252,46 +214,6 @@ export function MessageComposer({
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
-              <div className="relative">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={disabled}
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="h-8 w-8 p-0 hover:bg-muted"
-                      >
-                        <Smile className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add emoji</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                {/* Simple Emoji Picker */}
-                {showEmojiPicker && (
-                  <div className="emoji-picker-container absolute bottom-full left-0 mb-2 bg-background border rounded-lg shadow-lg p-2 z-50">
-                    <div className="grid grid-cols-6 gap-1">
-                      {commonEmojis.map((emoji, index) => (
-                        <Button
-                          key={index}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => insertEmoji(emoji)}
-                          className="h-8 w-8 p-0 hover:bg-muted text-lg"
-                        >
-                          {emoji}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Right Actions */}

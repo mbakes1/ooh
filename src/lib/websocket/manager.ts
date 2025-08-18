@@ -1,6 +1,4 @@
 import { Server as SocketIOServer } from "socket.io";
-import { Server as HTTPServer } from "http";
-import { prisma } from "@/lib/db";
 import {
   ServerToClientEvents,
   ClientToServerEvents,

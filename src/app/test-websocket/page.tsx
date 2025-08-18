@@ -212,10 +212,10 @@ export default function TestWebSocketPage() {
         <CardContent>
           <ol className="list-decimal list-inside space-y-2 text-sm">
             <li>
-              Make sure you're running the server with{" "}
+              Make sure you&apos;re running the server with{" "}
               <code className="bg-muted px-1 rounded">npm run dev:custom</code>
             </li>
-            <li>Check that the WebSocket status shows "Connected"</li>
+            <li>Check that the WebSocket status shows &quot;Connected&quot;</li>
             <li>
               Try sending a test message to see if real-time messaging works
             </li>

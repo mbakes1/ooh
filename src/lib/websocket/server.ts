@@ -1,9 +1,6 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
-import { NextApiRequest } from "next";
-import { getToken } from "next-auth/jwt";
 
 export interface ServerToClientEvents {
   newMessage: (data: {
@@ -35,6 +32,7 @@ export interface ServerToClientEvents {
   }) => void;
   userOnline: (data: { userId: string }) => void;
   userOffline: (data: { userId: string }) => void;
+  typing: (data: { userId: string; conversationId: string; isTyping: boolean }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -45,6 +43,16 @@ export interface ClientToServerEvents {
     conversationId: string;
   }) => void;
   typing: (data: { conversationId: string; isTyping: boolean }) => void;
+  newMessage: (data: {
+    id: string;
+    conversationId: string;
+    content: string;
+    senderId: string;
+    senderName: string;
+    senderAvatar: string | null;
+    createdAt: string;
+  }) => void;
+  authenticate: (data: { userId: string }) => void;
 }
 
 export interface InterServerEvents {

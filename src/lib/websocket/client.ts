@@ -46,8 +46,10 @@ export const connectWebSocket = (userId?: string) => {
     if (userId) {
       const handleConnect = () => {
         console.log("🔐 Authenticating user:", userId);
-        socket.emit("authenticate", { userId });
-        socket.off("connect", handleConnect); // Remove this specific handler
+        if (socket) {
+          socket.emit("authenticate", { userId });
+        }
+        socket?.off("connect", handleConnect); // Remove this specific handler
       };
 
       socket.on("connect", handleConnect);
